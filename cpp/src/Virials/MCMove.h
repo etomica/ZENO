@@ -41,7 +41,7 @@
 
 #include "IntegratorMSMC.h"
 
-/// Defines particles using assembly of spheres with mutable center and orientation.
+/// Performs a monte carlo trial.
 ///
 template <class T,
         class RandomNumberGenerator>
@@ -71,6 +71,8 @@ protected:
     
 };
 
+/// Sub class of MCMove to perform a monte carlo trial for translation.
+///
 template <class T,
         class RandomNumberGenerator>
 class MCMoveTranslate : public MCMove<T, RandomNumberGenerator> {
@@ -80,6 +82,8 @@ public:
       void doTrial();
  };
 
+/// Sub class of MCMove to perform a monte carlo trial for rotation.
+///
 template <class T,
         class RandomNumberGenerator>
 class MCMoveRotate : public MCMove<T, RandomNumberGenerator> {
@@ -89,6 +93,8 @@ public:
     void doTrial();
 };
 
+/// Sub class of MCMove to perform a monte carlo trial for chain move.
+///
 template <class T,
         class RandomNumberGenerator>
 class MCMoveChainVirial : public MCMove<T, RandomNumberGenerator> {

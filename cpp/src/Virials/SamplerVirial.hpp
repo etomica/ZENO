@@ -38,7 +38,7 @@
 
 #include "SamplerVirial.h"
 
-/// Performs calculations to obtain virial coefficients.
+///  Constructs the class to perform calculations to obtain virial coefficients.
 
 template <class T,
   class RandomNumberGenerator>

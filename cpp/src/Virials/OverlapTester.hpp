@@ -38,7 +38,7 @@
 
 #include "OverlapTester.h"
 
-///
+///Creates a class to check if two particles are overalapped.
 ///
 
 template <class T>
@@ -51,7 +51,7 @@ OverlapTester<T>::
   ~OverlapTester() {
 }
 
-///
+///Checks if two particles obtained as parameters are overlapped.
 ///
 template <class T>
 bool

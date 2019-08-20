@@ -46,7 +46,7 @@
 #include "../Geometry/Vector3.h"
 #include "../Geometry/Matrix3x3.h"
 
-/// Defines particles using assembly of spheres with mutable center and orientation.
+/// Defines a particle as an assembly of spheres with mutable center and orientation.
 ///
 template <class T>
 class Particle {

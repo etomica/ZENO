@@ -41,7 +41,7 @@
 
 #include "ClusterSum.h"
 
-///
+///Collects data and statistics.
 ///
 template <class T,
         class RandomNumberGenerator>

@@ -38,7 +38,7 @@
 
 #include "Particle.h"
 
-/// Defines particles using assembly of spheres with mutable center and orientation.
+///  Constructs the class to define a particle as an assembly of spheres with mutable center and orientation.
 ///
 
 template <class T>
@@ -52,7 +52,7 @@ Particle<T>::
   ~Particle() {
 }
 
-/// Defines particles using assembly of spheres with mutable center and orientation.
+/// Obtain number of spheres in the particle.
 ///
 template <class T>
 int
@@ -61,6 +61,8 @@ numSpheres(){
     return model.getSpheres() -> size();
 }
 
+/// Obtain center of particle. Note: This is a constant, hence cannot be modified directly.
+///
 template <class T>
 const Vector3<T>
 Particle<T>::
@@ -68,6 +70,8 @@ getCenter() const {
     return center;
 }
 
+/// Sets the center of particle equal to the vector3 obtained as a function parameter.
+///
 template <class T>
 void
 Particle<T>::
@@ -75,6 +79,8 @@ setCenter(Vector3<T> v) {
     center = v;
 }
 
+/// Translates the particle by a step obtained as a function parameter.
+///
 template <class T>
 void
 Particle<T>::
@@ -82,6 +88,8 @@ translateBy(Vector3<T> step){
     center += step;
 }
 
+/// Rotates the particle about an axis and an by an angle, both obtained as a function parameters.
+///
 template <class T>
 void
 Particle<T>::
@@ -91,6 +99,8 @@ rotateBy(Vector3<T> axis, T angle){
     rotation.transform(orientation);
 }
 
+/// Sets the sphere at index of particle based on new position of particle.
+///
 template <class T>
 const Vector3<T>
 Particle<T>::
@@ -101,6 +111,8 @@ setFromSpherePosition( int index) const {
     return position;
 }
 
+/// Obtain the assembly of spheres which constitute a particle.
+///
 template <class T>
 MixedModel<T> *
 Particle<T>::
@@ -108,6 +120,8 @@ getModel(){
     return model;
 }
 
+/// Returns a bounding sphere around the assembly of spheres.
+///
 template <class T>
 Sphere<T> *
 Particle<T>::

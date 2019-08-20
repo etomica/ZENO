@@ -39,7 +39,7 @@
 #include "MeterOverlap.h"
 #include "alloc2D.h"
 
-///
+/// Constructs a class to collect data and statistics.
 ///
 
 template <class T, class RandomNumberGenerator>
@@ -55,7 +55,7 @@ MeterOverlap<T, RandomNumberGenerator>::
     delete[] alpha;
 }
 
-/// Defines particles using assembly of spheres with mutable center and orientation.
+/// Sets alpha.
 ///
 template <class T, class RandomNumberGenerator>
 void
@@ -88,6 +88,8 @@ setAlpha(double alphaCenter, double alphaSpan, int nAlpha) {
     }
 }
 
+/// Returns numAlpha.
+///
 template <class T, class RandomNumberGenerator>
 int
 MeterOverlap<T, RandomNumberGenerator>::
@@ -95,6 +97,8 @@ getNumAlpha() {
  return numAlpha;
 }
 
+/// Returns alpha.
+///
 template <class T, class RandomNumberGenerator>
 const double *
 MeterOverlap<T, RandomNumberGenerator>::
@@ -102,6 +106,8 @@ getAlpha(){
     return alpha;
 }
 
+/// Collects data.
+///
 template <class T, class RandomNumberGenerator>
 void
 MeterOverlap<T, RandomNumberGenerator>::
@@ -162,6 +168,8 @@ collectData() {
     }
 }
 
+/// Sets block size.
+///
 template <class T, class RandomNumberGenerator>
 void
 MeterOverlap<T, RandomNumberGenerator>::
@@ -171,6 +179,8 @@ setBlockSize(long bs) {
     reset();
 }
 
+/// Sets maximum block count.
+///
 template <class T, class RandomNumberGenerator>
 void
 MeterOverlap<T, RandomNumberGenerator>::
@@ -182,6 +192,8 @@ setMaxBlockCount(long mBC) {
     blockSums = (double ** ) realloc2D ((void ** ) blockSums, numData, maxBlockCount, sizeof(double));
 }
 
+/// Resets the averages and statistics.
+///
 template <class T, class RandomNumberGenerator>
 void
 MeterOverlap<T, RandomNumberGenerator>::
@@ -227,6 +239,8 @@ reset() {
     if (doCovariance) ratioCovariance = (double ** ) realloc2D ((void ** ) ratioCovariance, numData, numData, sizeof(double));
 }
 
+/// Returns statistics.
+///
 template <class T, class RandomNumberGenerator>
 double **
 MeterOverlap<T, RandomNumberGenerator>::
@@ -267,6 +281,8 @@ getStatistics() {
     return stats;
 }
 
+/// Returns block covariance.
+///
 template <class T, class RandomNumberGenerator>
 double **
 MeterOverlap<T, RandomNumberGenerator>::
@@ -282,6 +298,8 @@ getBlockCovariance() {
     return blockCovariance;
 }
 
+/// Returns block correlation.
+///
 template <class T, class RandomNumberGenerator>
 double **
 MeterOverlap<T, RandomNumberGenerator>::
@@ -300,6 +318,8 @@ getBlockCorrelation() {
     return blockCovariance;
 }
 
+/// Returns ratio statistics.
+///
 template <class T, class RandomNumberGenerator>
 double **
 MeterOverlap<T, RandomNumberGenerator>::
@@ -329,6 +349,8 @@ getRatioStatistics() {
     return ratioStats;
 }
 
+/// Returns ratio covariance.
+///
 template <class T, class RandomNumberGenerator>
 double **
 MeterOverlap<T, RandomNumberGenerator>::
@@ -369,6 +391,8 @@ getRatioCovariance() {
     return ratioCovariance;
 }
 
+/// Returns ratio correlation.
+///
 template <class T, class RandomNumberGenerator>
 double **
 MeterOverlap<T, RandomNumberGenerator>::

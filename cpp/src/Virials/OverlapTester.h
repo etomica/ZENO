@@ -41,7 +41,7 @@
 
 #include "Particle.h"
 
-///
+/// Checks if two particles are overlapped.
 ///
 template <class T>
 class OverlapTester {

@@ -41,7 +41,7 @@
 
 #include "OverlapTester.h"
 
-/// Defines particles using assembly of spheres with mutable center and orientation.
+/// Computes cluster sum.
 ///
 template <class T,
         class RandomNumberGenerator>
@@ -60,7 +60,7 @@ class ClusterSum {
     IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC;
 };
 
-///
+///Sub class of ClusterSum to compute cluster sum for chains.
 ///
 
 template <class T,
@@ -76,6 +76,8 @@ private:
       double chainFac;
 };
 
+///Sub class of ClusterSum to compute cluster sum using Wheatley Recursion.
+///
 template <class T,
         class RandomNumberGenerator>
 class ClusterSumWheatleyRecursion : public ClusterSum<T, RandomNumberGenerator>{

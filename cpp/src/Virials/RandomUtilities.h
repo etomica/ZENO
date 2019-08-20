@@ -41,7 +41,7 @@
 
 #include "../Geometry/Vector3.h"
 
-/// Defines particles using assembly of spheres with mutable center and orientation.
+/// Generates random vectors inside and on a unit sphere.
 ///
 template <class T, 
         class RandomNumberGenerator>

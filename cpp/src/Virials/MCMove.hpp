@@ -38,7 +38,7 @@
 
 #include "MCMove.h"
 
-/// Defines particles using assembly of spheres with mutable center and orientation.
+/// Constructs the class to perform a monte carlo trail.
 ///
 
 template <class T,
@@ -65,6 +65,8 @@ MCMove<T, RandomNumberGenerator>::
   ~MCMove() {
 }
 
+/// Constructs a sub class of MCMove to perform a monte carlo trail for translation.
+///
 template <class T, 
         class RandomNumberGenerator>
 MCMoveTranslate<T, RandomNumberGenerator>::
@@ -80,6 +82,8 @@ MCMoveTranslate<T, RandomNumberGenerator>::
 ~MCMoveTranslate() {
 }
 
+/// Perform a monte carlo trail for translation.
+///
 template <class T,
         class RandomNumberGenerator>
 void MCMoveTranslate<T, RandomNumberGenerator>::
@@ -114,6 +118,8 @@ doTrial(){
     }
 }
 
+/// Constructs a sub class of MCMove to perform a monte carlo trail for rotation.
+///
 template <class T,
         class RandomNumberGenerator>
 MCMoveRotate<T, RandomNumberGenerator>::
@@ -128,6 +134,8 @@ MCMoveRotate<T, RandomNumberGenerator>::
 ~MCMoveRotate() {
 }
 
+/// Perform a monte carlo trail for rotation.
+///
 template <class T, class RandomNumberGenerator>
 void MCMoveRotate<T, RandomNumberGenerator>::
 doTrial(){
@@ -159,6 +167,8 @@ doTrial(){
     }
 }
 
+/// Constructs a sub class of MCMove to perform a monte carlo trail for chain move.
+///
 template <class T, class RandomNumberGenerator>
 MCMoveChainVirial<T, RandomNumberGenerator>::
 MCMoveChainVirial(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, double sigma): MCMove<T, RandomNumberGenerator>(integratorMSMC), sigma(sigma)
@@ -170,6 +180,8 @@ MCMoveChainVirial<T, RandomNumberGenerator>::
 ~MCMoveChainVirial() {
 }
 
+/// Perform a monte carlo trail for chain move.
+///
 template <class T, class RandomNumberGenerator>
 void MCMoveChainVirial<T, RandomNumberGenerator>::
 doTrial() {
@@ -185,6 +197,8 @@ doTrial() {
     }
 }
 
+/// Adjusts step size.
+///
 template <class T, class RandomNumberGenerator>
 void MCMove<T, RandomNumberGenerator>::
 adjustStepSize(){
@@ -241,12 +255,16 @@ adjustStepSize(){
     chiSum = 0;
 }
 
+/// Returns step size.
+///
 template <class T, class RandomNumberGenerator>
 double MCMove<T, RandomNumberGenerator>::
 getStepSize() {
     return stepSize;
 }
 
+/// Sets step size.
+///
 template <class T, class RandomNumberGenerator>
 void MCMove<T, RandomNumberGenerator>::
 setStepSize(double sS) {

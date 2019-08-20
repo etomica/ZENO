@@ -38,7 +38,7 @@
 
 #include "ClusterSum.h"
 
-/// Defines particles using assembly of spheres with mutable center and orientation.
+/// Constructs the class to compute cluster sum.
 ///
 
 template <class T,
@@ -55,7 +55,7 @@ ClusterSum<T, RandomNumberGenerator>::
   ~ClusterSum() {
 }
 
-///
+/// Constructs a sub class of ClusterSum to compute cluster sum for chains.
 ///
 
 template <class T,
@@ -72,6 +72,8 @@ ClusterSumChain<T, RandomNumberGenerator>::
 ~ClusterSumChain() {
 }
 
+/// Computes cluster sum for chains.
+///
 template <class T,
         class RandomNumberGenerator>
 double
@@ -139,6 +141,8 @@ value(){
     return chainFac*chainValue + ringFac*ringValue;
 }
 
+/// Constucts a sub class of ClusterSum to compute cluster sum using Wheatley Recursion.
+///
 template <class T,
         class RandomNumberGenerator>
 ClusterSumWheatleyRecursion<T, RandomNumberGenerator>::
@@ -158,6 +162,8 @@ ClusterSumWheatleyRecursion<T, RandomNumberGenerator>::
 ~ClusterSumWheatleyRecursion() {
 }
 
+/// Computes cluster sum using Wheatley Recursion.
+///
 template <class T,
     class RandomNumberGenerator>
 double

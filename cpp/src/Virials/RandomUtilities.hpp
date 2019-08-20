@@ -40,7 +40,7 @@
 
 #include "RandomUtilities.h"
 
-/// Defines particles using assembly of spheres with mutable center and orientation.
+/// Constructs the class to generate random vectors inside and on a unit sphere.
 ///
 template <class T,
         class RandomNumberGenerator>
@@ -54,7 +54,7 @@ RandomUtilities<T, RandomNumberGenerator>::
   ~RandomUtilities() {
 }
 
-/// Generates random vectors.
+/// Generates random vectors on a unit sphere.
 ///
 template <class T,
         class RandomNumberGenerator>
@@ -72,6 +72,8 @@ setRandomOnSphere(Vector3<T> * v) {
     v->setXYZ(z1 * ranh, z2 * ranh, 1.0 - 2.0 * zsq);
 }
 
+/// Generates random vectors inside a unit sphere.
+///
 template <class T,
         class RandomNumberGenerator>
 void

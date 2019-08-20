@@ -52,7 +52,7 @@
 #include "Particle.h"
 #include "RandomUtilities.h"
 
-/// Performs calculations to obtain virial coefficients.
+/// Performs a step. A step performed by the integrator consists of selecting a MCMove, performing the trial defined by MCMove and collecting data and statistics.
 ///
 
 template <class T,
