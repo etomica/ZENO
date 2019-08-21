@@ -39,7 +39,7 @@ set(SOURCE_FILES
   ${SRC_DIR}/ResultsZeno.cc
   ${SRC_DIR}/Timer.cc
   ${SRC_DIR}/Units.cc
-  )
+        src/Virials/VirialAlpha.hpp src/Virials/VirialAlpha.h src/Virials/VirialProduction.hpp src/Virials/VirialProduction.h)
 
 add_executable(zeno ${SOURCE_FILES})
 

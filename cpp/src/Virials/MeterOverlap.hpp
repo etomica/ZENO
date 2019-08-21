@@ -21,7 +21,11 @@
 
 template <class T, class RandomNumberGenerator>
 MeterOverlap<T, RandomNumberGenerator>::
-MeterOverlap(ClusterSum<T, RandomNumberGenerator> & clusterSumPrimary, ClusterSum<T, RandomNumberGenerator> & clusterSumPerturb, double alphaCenter, double alphaSpan, int numAlpha) : clusterSumPrimary(clusterSumPrimary), clusterSumPerturb(clusterSumPerturb), numAlpha(numAlpha){
+MeterOverlap(ClusterSum<T, RandomNumberGenerator> & clusterSumPrimary,
+             ClusterSum<T, RandomNumberGenerator> & clusterSumPerturb,
+             double alphaCenter, double alphaSpan, int numAlpha) :
+             clusterSumPrimary(clusterSumPrimary), clusterSumPerturb(clusterSumPerturb),
+             numAlpha(numAlpha){
     setAlpha(alphaCenter, alphaSpan, numAlpha);
 }
 
