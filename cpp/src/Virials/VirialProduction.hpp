@@ -35,6 +35,8 @@ VirialProduction(IntegratorMSMC<T, RandomNumberGenerator> & rIntegrator,
     int numTargets = targetMeter.getNumData();
     fullStats = (double**)malloc2D(numTargets-1, 2, sizeof(double));
     fullBCStats = (double**)malloc2D(numTargets-1, numTargets-1, sizeof(double));
+    refIntegrator.setMeter(&refMeter);
+    targetIntegrator.setMeter(&targetMeter);
 }
 
 template <class T,
@@ -212,7 +214,7 @@ getFullBCStats() {
 template <class T,
         class RandomNumberGenerator>
 void VirialProduction<T, RandomNumberGenerator>::
-runSteps(long numSteps) {
+runSteps(long long numSteps) {
     long totalSteps = refSteps + targetSteps;
     long subSteps = 100 + totalSteps/1000;
     if (subSteps > numSteps) subSteps = numSteps;

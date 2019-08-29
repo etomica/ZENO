@@ -28,14 +28,15 @@ template <class T,
         class RandomNumberGenerator>
 class MCMove {
  public:
-    MCMove(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC);
+    MCMove(IntegratorMSMC<T, RandomNumberGenerator> & integratorMsmc, ClusterSum<T, RandomNumberGenerator> & clusterSum);
   virtual ~MCMove();
   virtual void doTrial() = 0;
   double getStepSize();
   void setStepSize(double sS);
 
 protected:
-    IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC;
+    IntegratorMSMC<T, RandomNumberGenerator> & integratorMsmc;
+    ClusterSum<T, RandomNumberGenerator> & clusterSum;
     double stepSize;
     void adjustStepSize();
     double maxStepSize;
@@ -54,7 +55,7 @@ template <class T,
         class RandomNumberGenerator>
 class MCMoveTranslate : public MCMove<T, RandomNumberGenerator> {
 public:
-      MCMoveTranslate(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC);
+      MCMoveTranslate(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T, RandomNumberGenerator> & clusterSum);
       ~MCMoveTranslate();
       void doTrial();
  };
@@ -65,7 +66,7 @@ template <class T,
         class RandomNumberGenerator>
 class MCMoveRotate : public MCMove<T, RandomNumberGenerator> {
 public:
-    MCMoveRotate(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC);
+    MCMoveRotate(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T, RandomNumberGenerator> & clusterSum);
     ~MCMoveRotate();
     void doTrial();
 };
@@ -76,7 +77,7 @@ template <class T,
         class RandomNumberGenerator>
 class MCMoveChainVirial : public MCMove<T, RandomNumberGenerator> {
 public:
-    MCMoveChainVirial(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, double sigma);
+    MCMoveChainVirial(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T, RandomNumberGenerator> & clusterSum, double sigma);
     ~MCMoveChainVirial();
     void doTrial();
 protected:

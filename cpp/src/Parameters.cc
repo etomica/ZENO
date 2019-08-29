@@ -96,7 +96,13 @@ Parameters::Parameters()
     solventViscosityUnit(),
     solventViscosityWasSet(false),
     buoyancyFactor(),
-    buoyancyFactorWasSet(false) {
+    buoyancyFactorWasSet(false),
+    virialSteps(),
+    virialStepsWasSet(false),
+    maxErrorVirialCoefficient(),
+    maxErrorVirialCoefficientWasSet(false),
+    virialCoefficientOrder(),
+    virialCoefficientOrderWasSet(false){
 
 }
 
@@ -242,6 +248,22 @@ Parameters::parseCommandLine(int argc, char **argv) {
     interiorPointsFileName = "";
   }
 
+  if (args_info.virial_steps_given) {
+    virialSteps = args_info.virial_steps_arg;
+    virialStepsWasSet = true;
+  }
+
+  if (args_info.max_rsd_virial_coefficient_given) {
+    maxErrorVirialCoefficient = args_info.max_rsd_virial_coefficient_arg;
+    maxErrorVirialCoefficientWasSet = true;
+  }
+
+  if (args_info.virial_coefficient_order_given) {
+    virialCoefficientOrder = args_info.virial_coefficient_order_arg;
+    virialCoefficientOrderWasSet = true;
+  }
+
+
   printCounts     = args_info.print_counts_given;
   printBenchmarks = args_info.print_benchmarks_given;
 
@@ -341,6 +363,22 @@ Parameters::print(std::ofstream * csvOutputFile) const {
   if (buoyancyFactorWasSet) {
     printScalarValue("Buoyancy factor", "buoyancy_factor", "",
 		     buoyancyFactor, csvOutputFile);
+  }
+
+  if (virialStepsWasSet) {
+    printScalarValue("Number of Monte Carlo steps requested to obtain virial coefficient", "virial_steps_requested", "",
+             virialSteps, csvOutputFile);
+  }
+
+  if (maxErrorVirialCoefficientWasSet) {
+    printScalarValue("Max error in virial coefficient requested",
+                     "max_error_virial_coefficient_requested", "%",
+             maxErrorVirialCoefficient, csvOutputFile);
+  }
+
+  if (virialCoefficientOrderWasSet) {
+    printScalarValue("Order of virial coefficient", "virial_coefficient_order_requested", "",
+             virialCoefficientOrder, csvOutputFile);
   }
 }
 
@@ -637,6 +675,36 @@ Parameters::getBuoyancyFactor() const {
 bool
 Parameters::getBuoyancyFactorWasSet() const {
   return buoyancyFactorWasSet;
+}
+
+long long
+Parameters::getVirialSteps() const {
+    return virialSteps;
+}
+
+bool
+Parameters::getVirialStepsWasSet() const {
+    return virialStepsWasSet;
+}
+
+double
+Parameters::getMaxErrorVirialCoefficient() const {
+    return maxErrorVirialCoefficient;
+}
+
+bool
+Parameters::getMaxErrorVirialCoefficientWasSet() const {
+    return maxErrorVirialCoefficientWasSet;
+}
+
+int
+Parameters::getVirialCoefficientOrder() const {
+    return virialCoefficientOrder;
+}
+
+bool
+Parameters::getVirialCoefficientOrderWasSet() const {
+    return virialCoefficientOrderWasSet;
 }
 
 /// Broadcasts the parameters that can be set in the bod file over MPI.

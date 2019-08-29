@@ -27,25 +27,15 @@ IntegratorMSMC(Parameters const * parameters,
                 int threadNum,
                 Timer const * totalTimer,
                 RandomNumberGenerator * randomNumberGenerator,
-                std::vector<Sphere<double> *> & boundingSpheres,
+                std::vector<Sphere<double> const *> & boundingSpheres,
                 std::vector<int> & numParticles,
-                std::vector<MixedModel<T> *> & models,
-                OverlapTester<T> const & overlapTester,
-                std::vector<MCMove<T, RandomNumberGenerator>> & mcMoves,
-                std::vector<double> & moveProbs,
-                ClusterSum<T, RandomNumberGenerator> * clusterSum,
-                MeterOverlap<T, RandomNumberGenerator> & meterOverlap) :
+                std::vector<MixedModel<T> const *> & models) :
               parameters(parameters),
               threadNum(threadNum),
               totalTimer(totalTimer),
               randomNumberGenerator(randomNumberGenerator),
               boundingSpheres(boundingSpheres),
-              numParticles(numParticles),
-              overlapTester(overlapTester),
-              mcMoves(mcMoves),
-              moveProbs(moveProbs),
-              clusterSum(clusterSum),
-              meterOverlap(meterOverlap){
+              numParticles(numParticles), randomUtilities(randomNumberGenerator){
     for(int i = 0; i < numParticles.size(); ++i)
     {
         for (int j =0; j < numParticles[i]; ++j)
@@ -71,20 +61,24 @@ template <class T,
 void
 IntegratorMSMC<T,
                RandomNumberGenerator>::
-doStep(){
-    double random = randomNumberGenerator->getRandIn01();
-    double cumProb = 0.0;
-    int currentMove = -1;
-    for(int i = 0; i < mcMoves.size(); ++i)
+doStep(long long numSteps){
+    double totalProb = 0.0;
+    for(int i = 0; i < moveProbs.size(); ++i) totalProb += moveProbs[i];
+    for(int j = 0; j < numSteps; ++j)
     {
-        cumProb += moveProbs[i];
-        if(random < cumProb)
+        double cumProb = 0.0;
+        double random = totalProb * randomNumberGenerator->getRandIn01();
+        for(int i = 0; i < mcMoves.size(); ++i)
         {
-            currentMove = i;
+            cumProb += moveProbs[i];
+            if(random < cumProb)
+            {
+                mcMoves[i].doTrial();
+                break;
+            }
         }
-        mcMoves[i].doTrial();
+        meterOverlap.collectData();
     }
-    meterOverlap.collectData();
 }
 
 /// Returns particles.
@@ -107,16 +101,6 @@ getRandomNumberGenerator(){
     return randomNumberGenerator;
 }
 
-/// Returns cluster sum.
-///
-template <class T,
-        class RandomNumberGenerator>
-ClusterSum<T, RandomNumberGenerator> *
-IntegratorMSMC<T,RandomNumberGenerator>::
-getClusterSum(){
-    return clusterSum;
-}
-
 /// Returns random utilities.
 ///
 template <class T,
@@ -127,3 +111,24 @@ getRandomUtilities(){
     return & randomUtilities;
 }
 
+
+/// Adds a MC Move with Move Probability.
+///
+template <class T,
+        class RandomNumberGenerator>
+void
+IntegratorMSMC<T, RandomNumberGenerator>::
+addMove(MCMove<T, RandomNumberGenerator> * mcMove, double moveProb){
+    mcMoves.push_back(mcMove);
+    moveProbs.push_back(moveProb);
+}
+
+/// Adds a meter.
+///
+template <class T,
+        class RandomNumberGenerator>
+void
+IntegratorMSMC<T, RandomNumberGenerator>::
+setMeter(MeterOverlap<T, RandomNumberGenerator> * meter) {
+    meterOverlap = meter;
+}

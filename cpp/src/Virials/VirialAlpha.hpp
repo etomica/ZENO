@@ -34,6 +34,8 @@ VirialAlpha(IntegratorMSMC<T, RandomNumberGenerator> & rIntegrator,
     int numAlpha = refMeter.getNumAlpha();
     const double *alpha = refMeter.getAlpha();
     alphaSpan = log(alpha[numAlpha-1]/alpha[0]);
+    refIntegrator.setMeter(&refMeter);
+    targetIntegrator.setMeter(&targetMeter);
 }
 
 template <class T,
@@ -147,8 +149,8 @@ template <class T,
 void
 VirialAlpha<T, RandomNumberGenerator>::
 runSteps(int numSteps) {
-    refIntegrator.doSteps(numSteps);
-    targetIntegrator.doSteps(numSteps);
+    refIntegrator.doStep(numSteps);
+    targetIntegrator.doStep(numSteps);
     stepCount += numSteps;
     if (stepCount >= nextCheck) {
         double jBestAlpha;

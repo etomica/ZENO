@@ -50,7 +50,7 @@ public:
     void analyze();
     void printResults(const char **targetNames);
     void getResults();
-    void runSteps(long numSteps);
+    void runSteps(long long numSteps);
     double** getFullStats();
     double* getAlphaStats();
     double** getRefStats();

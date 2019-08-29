@@ -102,6 +102,19 @@ struct gengetopt_args_info
   const char *interior_points_file_help; /**< @brief Name of file for writing the interior sample points help description.  */
   const char *print_counts_help; /**< @brief Print statistics related to counts of hit points help description.  */
   const char *print_benchmarks_help; /**< @brief Print detailed RAM and timing information help description.  */
+  #if defined(HAVE_LONG_LONG) || defined(HAVE_LONG_LONG_INT)
+  long long int virial_steps_arg;	/**< @brief Number of Monte Carlo steps to perform to compute a virial coefficient. Fewer steps may be performed if another stopping condition is reached first.  */
+  #else
+  long virial_steps_arg;	/**< @brief Number of Monte Carlo steps to perform to compute a virial coefficient. Fewer steps may be performed if another stopping condition is reached first.  */
+  #endif
+  char * virial_steps_orig;	/**< @brief Number of Monte Carlo steps to perform to compute a virial coefficient. Fewer steps may be performed if another stopping condition is reached first original value given at command line.  */
+  const char *virial_steps_help; /**< @brief Number of Monte Carlo steps to perform to compute a virial coefficient. Fewer steps may be performed if another stopping condition is reached first help description.  */
+  double max_rsd_virial_coefficient_arg;	/**< @brief Performs Monte Carlo steps to compute virial coefficient until the relative standard deviation of the virial coefficient drops below this value.  This value may not be reached if another stopping condition is reached first.  Relative standard deviation is defined as (Standard_Deviation/Mean)*100%.  */
+  char * max_rsd_virial_coefficient_orig;	/**< @brief Performs Monte Carlo steps to compute virial coefficient until the relative standard deviation of the virial coefficient drops below this value.  This value may not be reached if another stopping condition is reached first.  Relative standard deviation is defined as (Standard_Deviation/Mean)*100% original value given at command line.  */
+  const char *max_rsd_virial_coefficient_help; /**< @brief Performs Monte Carlo steps to compute virial coefficient until the relative standard deviation of the virial coefficient drops below this value.  This value may not be reached if another stopping condition is reached first.  Relative standard deviation is defined as (Standard_Deviation/Mean)*100% help description.  */
+  int virial_coefficient_order_arg;	/**< @brief Order of virial coefficient to compute.  */
+  char * virial_coefficient_order_orig;	/**< @brief Order of virial coefficient to compute original value given at command line.  */
+  const char *virial_coefficient_order_help; /**< @brief Order of virial coefficient to compute help description.  */
   
   unsigned int help_given ;	/**< @brief Whether help was given.  */
   unsigned int version_given ;	/**< @brief Whether version was given.  */
@@ -122,6 +135,9 @@ struct gengetopt_args_info
   unsigned int interior_points_file_given ;	/**< @brief Whether interior-points-file was given.  */
   unsigned int print_counts_given ;	/**< @brief Whether print-counts was given.  */
   unsigned int print_benchmarks_given ;	/**< @brief Whether print-benchmarks was given.  */
+  unsigned int virial_steps_given ;	/**< @brief Whether virial-steps was given.  */
+  unsigned int max_rsd_virial_coefficient_given ;	/**< @brief Whether max-rsd-virial-coefficient was given.  */
+  unsigned int virial_coefficient_order_given ;	/**< @brief Whether virial-coefficient-order was given.  */
 
 } ;
 

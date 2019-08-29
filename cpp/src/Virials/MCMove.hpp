@@ -21,7 +21,7 @@
 template <class T,
         class RandomNumberGenerator>
 MCMove<T, RandomNumberGenerator>::
-MCMove(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC) : integratorMSMC(integratorMSMC)
+MCMove(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T, RandomNumberGenerator> & clusterSum) : integratorMsmc(integratorMSMC), clusterSum(clusterSum)
               {
     stepSize = 0;
     numTrials = 0;
@@ -47,7 +47,7 @@ MCMove<T, RandomNumberGenerator>::
 template <class T, 
         class RandomNumberGenerator>
 MCMoveTranslate<T, RandomNumberGenerator>::
-MCMoveTranslate(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC) : MCMove<T, RandomNumberGenerator>(integratorMSMC)
+MCMoveTranslate(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T, RandomNumberGenerator> & clusterSum) : MCMove<T, RandomNumberGenerator>(integratorMSMC, clusterSum)
 {
     MCMove<T, RandomNumberGenerator>::stepSize = cbrt(integratorMSMC.getParticles()[0]->numSpheres())*integratorMSMC.getParticles()[0]->getModel().getSpheres()->at(0).getRadius();
     MCMove<T, RandomNumberGenerator>::maxStepSize = 1000;
@@ -59,7 +59,7 @@ MCMoveTranslate<T, RandomNumberGenerator>::
 ~MCMoveTranslate() {
 }
 
-/// Perform a monte carlo trail for translation.
+/// Perform a monte carlo trial for translation.
 ///
 template <class T,
         class RandomNumberGenerator>
@@ -84,6 +84,7 @@ doTrial(){
     }
     double newValue = MCMove<T, RandomNumberGenerator>::clusterSum.value();
     double ratio = newValue / oldValue;
+    ratio = fabs(ratio);
 
     if((ratio < 1) && (ratio < MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomNumberGenerator()->getRandIn01()))
     {
@@ -100,7 +101,7 @@ doTrial(){
 template <class T,
         class RandomNumberGenerator>
 MCMoveRotate<T, RandomNumberGenerator>::
-MCMoveRotate(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC) : MCMove<T, RandomNumberGenerator>(integratorMSMC)
+MCMoveRotate(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T, RandomNumberGenerator> & clusterSum) : MCMove<T, RandomNumberGenerator>(integratorMSMC, clusterSum)
 {
     MCMove<T, RandomNumberGenerator>::stepSize = M_PI/4;
     MCMove<T, RandomNumberGenerator>::maxStepSize = M_PI/2;
@@ -134,6 +135,7 @@ doTrial(){
     }
     double newValue = MCMove<T, RandomNumberGenerator>::clusterSum.value();
     double ratio = newValue / oldValue;
+    ratio = fabs(ratio);
 
     if((ratio < 1) && (ratio < MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomNumberGenerator()->getRandIn01()))
     {
@@ -148,7 +150,7 @@ doTrial(){
 ///
 template <class T, class RandomNumberGenerator>
 MCMoveChainVirial<T, RandomNumberGenerator>::
-MCMoveChainVirial(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, double sigma): MCMove<T, RandomNumberGenerator>(integratorMSMC), sigma(sigma)
+MCMoveChainVirial(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T, RandomNumberGenerator> & clusterSum, double sigma): MCMove<T, RandomNumberGenerator>(integratorMSMC, clusterSum), sigma(sigma)
 {
 }
 

@@ -33,14 +33,6 @@
 ///
 
 template <class T,
-        class RandomNumberGenerator>
-class MCMove;
-
-template <class T,
-        class RandomNumberGenerator>
-class ClusterSum;
-
-template <class T,
   class RandomNumberGenerator>
 class IntegratorMSMC {
  public:
@@ -48,36 +40,30 @@ class IntegratorMSMC {
                    int threadNum,
                    Timer const * totalTimer,
                    RandomNumberGenerator * randomNumberGenerator,
-                std::vector<Sphere<double> *> & boundingSpheres,
+                std::vector<Sphere<double> const *> & boundingSpheres,
                 std::vector<int> & numParticles,
-                std::vector<MixedModel<T> *> & models,
-		        OverlapTester<T> const & overlapTester,
-                std::vector<MCMove<T, RandomNumberGenerator>> & mcMoves,
-                std::vector<double> & moveProbs,
-                ClusterSum<T, RandomNumberGenerator> * clusterSum,
-                MeterOverlap<T, RandomNumberGenerator> & meterOverlap);
+                std::vector<MixedModel<T> const *> & models);
 
   ~IntegratorMSMC();
 
-  void doStep();
+  void doStep(long long numSteps);
   std::vector<Particle<T> *> getParticles();
   RandomNumberGenerator * getRandomNumberGenerator();
-  ClusterSum<T, RandomNumberGenerator> * getClusterSum();
   RandomUtilities<T, RandomNumberGenerator> * getRandomUtilities();
+  void addMove(MCMove<T, RandomNumberGenerator> * mcMove, double moveProb);
+  void setMeter(MeterOverlap<T, RandomNumberGenerator> * meter);
 private:
   Parameters const * parameters;
   int threadNum;
   Timer const * totalTimer;
   RandomNumberGenerator * randomNumberGenerator;
-  std::vector<Sphere<double> *> & boundingSpheres;
+  std::vector<Sphere<double> const *> & boundingSpheres;
   std::vector<int> & numParticles;
-  OverlapTester<T> const & overlapTester;
   std::vector<Particle<T> *> particles;
-  std::vector<MCMove<T, RandomNumberGenerator>> & mcMoves;
-  std::vector<double> & moveProbs;
-  ClusterSum<T, RandomNumberGenerator> * clusterSum;
+  std::vector<MCMove<T, RandomNumberGenerator> *> mcMoves;
+  std::vector<double> moveProbs;
   RandomUtilities<T, RandomNumberGenerator> randomUtilities;
-  MeterOverlap<T, RandomNumberGenerator> & meterOverlap;
+  MeterOverlap<T, RandomNumberGenerator> * meterOverlap;
 };
 
 #endif

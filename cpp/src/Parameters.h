@@ -143,6 +143,15 @@ public:
   double getBuoyancyFactor() const;
   bool getBuoyancyFactorWasSet() const;
 
+  long long getVirialSteps() const;
+  bool getVirialStepsWasSet() const;
+
+  double getMaxErrorVirialCoefficient() const;
+  bool getMaxErrorVirialCoefficientWasSet() const;
+
+  int getVirialCoefficientOrder() const;
+  bool getVirialCoefficientOrderWasSet() const;
+
   void mpiSend() const;
   void mpiReceive();
 
@@ -217,7 +226,16 @@ private:
   double buoyancyFactor;
   bool buoyancyFactorWasSet;
 
-  template <typename T>
+  long long virialSteps;
+  bool virialStepsWasSet;
+
+  double maxErrorVirialCoefficient;
+  bool maxErrorVirialCoefficientWasSet;
+
+  int virialCoefficientOrder;
+  bool virialCoefficientOrderWasSet;
+
+    template <typename T>
   void printScalarValue(std::string const & prettyName,
 	   	        std::string const & csvName,
 		        std::string const & units,

@@ -92,3 +92,11 @@ optional
 option "print-benchmarks" - "Print detailed RAM and timing information"
 optional
 
+option "virial-steps" - "Number of Monte Carlo steps to perform to compute a virial coefficient. Fewer steps may be performed if another stopping condition is reached first"
+longlong optional
+
+option "max-rsd-virial-coefficient" - "Performs Monte Carlo steps to compute virial coefficient until the relative standard deviation of the virial coefficient drops below this value.  This value may not be reached if another stopping condition is reached first.  Relative standard deviation is defined as (Standard_Deviation/Mean)*100%"
+double optional
+
+option "virial-coefficient-order" - "Order of virial coefficient to compute"
+int optional
