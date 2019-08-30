@@ -1310,6 +1310,7 @@ doVirialSamplingThread(Parameters const * parameters,
     std::vector<Model const *> models;
     models.push_back(&model);
     OverlapTester<double> const overlapTester;
+    double refDiameter = 2 * boundingSphere.getRadius() * 2;
     IntegratorMSMC<double, RandomNumberGenerator> refIntegrator(parameters,
                                                                  threadNum,
                                                                  totalTimer,
@@ -1318,10 +1319,10 @@ doVirialSamplingThread(Parameters const * parameters,
                                                                  numParticles,
                                                                  models);
 
-    ClusterSumChain<double, RandomNumberGenerator> clusterSumRef(refIntegrator, overlapTester, 0.0, 1.0);
-    ClusterSumWheatleyRecursion<double, RandomNumberGenerator> clusterSumTarget(refIntegrator, overlapTester);
-    MCMoveChainVirial<double, RandomNumberGenerator> mcMoveChain(refIntegrator, clusterSumRef, 2 * boundingSphere.getRadius());
-    MCMoveRotate<double , RandomNumberGenerator> mcMoveRotateRef(refIntegrator, clusterSumRef);
+    ClusterSumChain<double, RandomNumberGenerator> clusterSumRef(refIntegrator, refDiameter, 0.0, 1.0);
+    ClusterSumWheatleyRecursion<double, RandomNumberGenerator> clusterSumTarget(refIntegrator, &overlapTester);
+    MCMoveChainVirial<double, RandomNumberGenerator> mcMoveChain(refIntegrator, &clusterSumRef, 2 * boundingSphere.getRadius());
+    MCMoveRotate<double , RandomNumberGenerator> mcMoveRotateRef(refIntegrator, &clusterSumRef);
     refIntegrator.addMove(&mcMoveChain, 1.0);
     refIntegrator.addMove(&mcMoveRotateRef, 1.0);
 
@@ -1333,10 +1334,10 @@ doVirialSamplingThread(Parameters const * parameters,
                                                                 numParticles,
                                                                 models);
 
-    ClusterSumChain<double, RandomNumberGenerator> clusterSumRefT(targetIntegrator, overlapTester, 0.0, 1.0);
-    ClusterSumWheatleyRecursion<double, RandomNumberGenerator> clusterSumTargetT(targetIntegrator, overlapTester);
-    MCMoveTranslate<double, RandomNumberGenerator> mcMoveTranslate(targetIntegrator, clusterSumTargetT);
-    MCMoveRotate<double , RandomNumberGenerator> mcMoveRotateTarget(targetIntegrator, clusterSumTargetT);
+    ClusterSumChain<double, RandomNumberGenerator> clusterSumRefT(targetIntegrator, refDiameter, 0.0, 1.0);
+    ClusterSumWheatleyRecursion<double, RandomNumberGenerator> clusterSumTargetT(targetIntegrator, &overlapTester);
+    MCMoveTranslate<double, RandomNumberGenerator> mcMoveTranslate(targetIntegrator, &clusterSumTargetT);
+    MCMoveRotate<double , RandomNumberGenerator> mcMoveRotateTarget(targetIntegrator, &clusterSumTargetT);
     targetIntegrator.addMove(&mcMoveTranslate, 1.0);
     targetIntegrator.addMove(&mcMoveRotateTarget, 1.0);
 

@@ -25,8 +25,13 @@ MeterOverlap(ClusterSum<T, RandomNumberGenerator> & clusterSumPrimary,
              ClusterSum<T, RandomNumberGenerator> & clusterSumPerturb,
              double alphaCenter, double alphaSpan, int numAlpha) :
              clusterSumPrimary(clusterSumPrimary), clusterSumPerturb(clusterSumPerturb),
-             numAlpha(numAlpha) {
+             data(NULL), numAlpha(numAlpha), mostRecent(NULL), currentBlockSum(NULL), blockSum(NULL),
+             blockSum2(NULL), correlationSum(NULL),prevBlockSum(NULL), firstBlockSum(NULL),
+             stats(NULL), blockSums(NULL), blockCovariance(NULL), blockCovSum(NULL),
+             ratioStats(NULL), ratioCovariance(NULL){
+    alpha = new double[numAlpha];
     setAlpha(alphaCenter, alphaSpan);
+    setBlockSize(1000);
 }
 
 template <class T, class RandomNumberGenerator>
@@ -56,8 +61,6 @@ setAlpha(double alphaCenter, double alphaSpan) {
             exit(1);
         }
     }
-    data = new double[numData];
-    alpha = new double[numData];
 
     if (numAlpha == 1) {
         alpha[0] = alphaCenter;
@@ -66,6 +69,7 @@ setAlpha(double alphaCenter, double alphaSpan) {
     for (int i = 0; i < numAlpha; ++i) {
         alpha[i] = alphaCenter * exp((i - (numAlpha - 1.0) / 2) / (numAlpha - 1.0) * alphaSpan);
     }
+    reset();
 }
 
 /// Returns numAlpha.
@@ -130,14 +134,9 @@ collectData() {
         for (int i = 0; i < numData; ++i) {
             blockSum[i] += currentBlockSum[i];
             currentBlockSum[i] /= blockSize;
-            if (maxBlockCount > 0) {
-                if (blockCount > 0) correlationSum[i] += blockSums[i][blockCount - 1] * currentBlockSum[i];
-                blockSums[i][blockCount] = currentBlockSum[i];
-            } else {
-                if (blockCount > 0) correlationSum[i] += prevBlockSum[i] * currentBlockSum[i];
-                else firstBlockSum[i] = currentBlockSum[i];
-                prevBlockSum[i] = currentBlockSum[i];
-            }
+            if (blockCount > 0) correlationSum[i] += prevBlockSum[i] * currentBlockSum[i];
+            else firstBlockSum[i] = currentBlockSum[i];
+            prevBlockSum[i] = currentBlockSum[i];
             blockSum2[i] += currentBlockSum[i] * currentBlockSum[i];
             currentBlockSum[i] = 0;
         }
@@ -152,22 +151,8 @@ template <class T, class RandomNumberGenerator>
 void
 MeterOverlap<T, RandomNumberGenerator>::
 setBlockSize(long bs) {
-    defaultBlockSize = blockSize = bs;
-    maxBlockCount = -1;
+    blockSize = bs;
     reset();
-}
-
-/// Sets maximum block count.
-///
-template <class T, class RandomNumberGenerator>
-void
-MeterOverlap<T, RandomNumberGenerator>::
-setMaxBlockCount(long mBC) {
-    if (mBC < 4) {
-        std::cerr << "Max block count needs to be at least 3!"<< std::endl;
-        exit(1);
-    }
-    blockSums = (double ** ) realloc2D ((void ** ) blockSums, numData, maxBlockCount, sizeof(double));
 }
 
 /// Resets the averages and statistics.
@@ -177,7 +162,6 @@ void
 MeterOverlap<T, RandomNumberGenerator>::
 reset() {
     blockCount = 0;
-    blockSize = defaultBlockSize;
     blockCountdown = blockSize;
     if (numData == 0) {
         // we can't allocate 0-size arrays, so just leave them as nullptr
@@ -185,6 +169,7 @@ reset() {
         return;
     }
     // realloc our arrays so that we can adjust if n changes
+    data = (double *) realloc(data, numData * sizeof(double));
     mostRecent = (double *) realloc(mostRecent, numData * sizeof(double));
     currentBlockSum = (double *) realloc(currentBlockSum, numData * sizeof(double));
     blockSum = (double *) realloc(blockSum, numData * sizeof(double));
@@ -193,16 +178,8 @@ reset() {
     for (int i = 0; i < numData; ++i) {
         currentBlockSum[i] = blockSum[i] = blockSum2[i] = correlationSum[i] = 0;
     }
-    if (maxBlockCount > 0) {
-        if (maxBlockCount % 2 == 1 || maxBlockCount < 4) {
-            std::cerr << "Not nice!  Give me a max block count that's even and >= 4!" << std::endl;
-            exit(1);
-        }
-        blockSums = (double **) realloc2D((void **) blockSums, numData, maxBlockCount, sizeof(double));
-    } else {
-        prevBlockSum = (double *) realloc(prevBlockSum, numData * sizeof(double));
-        firstBlockSum = (double *) realloc(firstBlockSum, numData * sizeof(double));
-    }
+    prevBlockSum = (double *) realloc(prevBlockSum, numData * sizeof(double));
+    firstBlockSum = (double *) realloc(firstBlockSum, numData * sizeof(double));
     stats = (double **) realloc2D((void **) stats, numData, 4, sizeof(double));
     blockCovSum = (double **) realloc2D((void **) blockCovSum, numData, numData, sizeof(double));
     for (int i = 0; i < numData; ++i) {
@@ -244,12 +221,7 @@ getStatistics() {
         }
         else {
             double bc;
-            if (maxBlockCount>0) {
-                bc = (((2 * blockSum[i] / blockSize - blockSums[i][0] - blockSums[i][blockCount - 1]) * stats[i][AVG_AVG] - correlationSum[i]) / (1 - blockCount) + stats[i][AVG_AVG] * stats[i][AVG_AVG]) / stats[i][AVG_ERR];
-            }
-            else {
-                bc = (((2 * blockSum[i] / blockSize - firstBlockSum[i] - prevBlockSum[i]) * stats[i][AVG_AVG] - correlationSum[i]) / (1 - blockCount) + stats[i][AVG_AVG] * stats[i][AVG_AVG]) / stats[i][AVG_ERR];
-            }
+            bc = (((2 * blockSum[i] / blockSize - firstBlockSum[i] - prevBlockSum[i]) * stats[i][AVG_AVG] - correlationSum[i]) / (1 - blockCount) + stats[i][AVG_AVG] * stats[i][AVG_AVG]) / stats[i][AVG_ERR];
             stats[i][AVG_ACOR] = (std::isnan(bc) || bc <= -1 || bc >= 1) ? 0 : bc;
         }
         stats[i][AVG_ERR] = sqrt(stats[i][AVG_ERR] / (blockCount - 1));

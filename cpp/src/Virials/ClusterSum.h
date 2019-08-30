@@ -28,13 +28,13 @@ template <class T,
         class RandomNumberGenerator>
 class ClusterSum {
  public:
-    ClusterSum(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, OverlapTester<T> const & overlapTester);
+    ClusterSum(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, OverlapTester<T> const * overlapTester);
     virtual ~ClusterSum();
     virtual double value() = 0;
 
  protected:
     IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC;
-    OverlapTester<T> const & overlapTester;
+    OverlapTester<T> const * overlapTester;
 };
 
 ///Sub class of ClusterSum to compute cluster sum for chains.
@@ -44,11 +44,12 @@ template <class T,
         class RandomNumberGenerator>
 class ClusterSumChain : public ClusterSum<T, RandomNumberGenerator> {
 public:
-    ClusterSumChain(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, OverlapTester<T> const & overlapTester, double ringFac, double chainFac);
+    ClusterSumChain(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, double diameter, double ringFac, double chainFac);
     ~ClusterSumChain();
     double value();
 
 private:
+      double diameter;
       double ringFac;
       double chainFac;
 };
@@ -59,7 +60,7 @@ template <class T,
         class RandomNumberGenerator>
 class ClusterSumWheatleyRecursion : public ClusterSum<T, RandomNumberGenerator>{
 public:
-    ClusterSumWheatleyRecursion(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, OverlapTester<T> const & overlapTester);
+    ClusterSumWheatleyRecursion(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, OverlapTester<T> const * overlapTester);
     ~ClusterSumWheatleyRecursion();
     double value();
 

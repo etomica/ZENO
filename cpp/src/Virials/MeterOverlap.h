@@ -37,7 +37,6 @@ class MeterOverlap {
     double ** getBlockCovariance();
     double ** getBlockCorrelation();
     void setBlockSize(long blockSize);
-    void setMaxBlockCount(long maxBlockCount);
     long getBlockSize() {return blockSize;}
     long getBlockCount() {return blockCount;}
     void setNumData(int newNumData);
@@ -102,7 +101,7 @@ private:
     double * alpha;
     const int numAlpha;
     int numData;
-    long defaultBlockSize, blockSize, blockCount, maxBlockCount;
+    long blockSize, blockCount;
     long blockCountdown;
     double * mostRecent;
     double * currentBlockSum, * blockSum, * blockSum2, * correlationSum;
