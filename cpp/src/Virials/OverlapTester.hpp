@@ -33,7 +33,7 @@ OverlapTester<T>::
 template <class T>
 bool
 OverlapTester<T>::
-isOverlapped(Particle<T> * a, Particle<T> * b) {
+isOverlapped(Particle<T> * a, Particle<T> * b) const {
     Vector3<T> x = a->getBoundingSphere()->getCenter() + a->getCenter();
     Vector3<T> y = b->getBoundingSphere()->getCenter() + b->getCenter();
     Vector3<T> distCenterVec = x - y;
@@ -48,13 +48,13 @@ isOverlapped(Particle<T> * a, Particle<T> * b) {
     for(int i = 0; i < a->numSpheres(); ++i)
     {
         Vector3<T> x = a->setFromSpherePosition(i);
-        T radiusX = a->getModel()->getSpheres()[i]->getRadius();
+        T radiusX = a->getModel()->getSpheres()->at(i).getRadius();
         for(int j = 0; j < b->numSpheres(); ++j)
         {
             Vector3<T> y = a->setFromSpherePosition(j);
             Vector3<T> distCenterVec = x - y;
             T distCenterSqr = distCenterVec.getMagnitudeSqr();
-            T radiusY = b->getModel()->getSpheres()[i]->getRadius();
+            T radiusY = b->getModel()->getSpheres()->at(i).getRadius();
             if(distCenterSqr < ((radiusX + radiusY)* (radiusX + radiusY)))
             {
                 return true;

@@ -47,7 +47,7 @@ class IntegratorMSMC {
   ~IntegratorMSMC();
 
   void doStep(long long numSteps);
-  std::vector<Particle<T> *> getParticles();
+  std::vector<Particle<T> *> * getParticles();
   RandomNumberGenerator * getRandomNumberGenerator();
   RandomUtilities<T, RandomNumberGenerator> * getRandomUtilities();
   void addMove(MCMove<T, RandomNumberGenerator> * mcMove, double moveProb);

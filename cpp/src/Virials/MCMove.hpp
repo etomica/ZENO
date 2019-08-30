@@ -21,7 +21,7 @@
 template <class T,
         class RandomNumberGenerator>
 MCMove<T, RandomNumberGenerator>::
-MCMove(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T, RandomNumberGenerator> & clusterSum) : integratorMsmc(integratorMSMC), clusterSum(clusterSum)
+MCMove(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T, RandomNumberGenerator> & clusterSum) : integratorMSMC(integratorMSMC), clusterSum(clusterSum)
               {
     stepSize = 0;
     numTrials = 0;
@@ -49,7 +49,7 @@ template <class T,
 MCMoveTranslate<T, RandomNumberGenerator>::
 MCMoveTranslate(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T, RandomNumberGenerator> & clusterSum) : MCMove<T, RandomNumberGenerator>(integratorMSMC, clusterSum)
 {
-    MCMove<T, RandomNumberGenerator>::stepSize = cbrt(integratorMSMC.getParticles()[0]->numSpheres())*integratorMSMC.getParticles()[0]->getModel().getSpheres()->at(0).getRadius();
+    MCMove<T, RandomNumberGenerator>::stepSize = cbrt(integratorMSMC.getParticles()->at(0)->numSpheres())*integratorMSMC.getParticles()->at(0)->getModel()->getSpheres()->at(0).getRadius();
     MCMove<T, RandomNumberGenerator>::maxStepSize = 1000;
 }
 
@@ -73,14 +73,14 @@ doTrial(){
         std::cerr << "Old Value is zero " << std::endl;
         exit(1);
     }
-    std::vector<Vector3<T>> step(MCMove<T, RandomNumberGenerator>::integratorMSMC.particles->size() - 1);
-    for(int j = 0; j < (MCMove<T, RandomNumberGenerator>::integratorMSMC.particles->size() - 1); ++j)
+    std::vector<Vector3<T>> step(MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size() - 1);
+    for(unsigned int j = 0; j < (MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size() - 1); ++j)
     {
         for(int i = 0; i < 3; ++i)
         {
-            MCMove<T, RandomNumberGenerator>::step[j].set(i, (MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomNumberGenerator()->getRandIn01() - 0.5) * MCMove<T, RandomNumberGenerator>::stepSize);
+            step[j].set(i, (MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomNumberGenerator()->getRandIn01() - 0.5) * MCMove<T, RandomNumberGenerator>::stepSize);
         }
-        MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()[j+1]->translateBy(step[j]);
+        MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j+1)->translateBy(step[j]);
     }
     double newValue = MCMove<T, RandomNumberGenerator>::clusterSum.value();
     double ratio = newValue / oldValue;
@@ -88,10 +88,10 @@ doTrial(){
 
     if((ratio < 1) && (ratio < MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomNumberGenerator()->getRandIn01()))
     {
-        for(int j = 0; j < (MCMove<T, RandomNumberGenerator>::integratorMSMC.particles->size() - 1); ++j)
+        for(unsigned int j = 0; j < (MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size() - 1); ++j)
         {
-            MCMove<T, RandomNumberGenerator>::step[j] *= -1;
-            MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()[j+1]->translateBy(step[j]);
+            step[j] *= -1;
+            MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j+1)->translateBy(step[j]);
         }
     }
 }
@@ -125,13 +125,13 @@ doTrial(){
         std::cerr << "Old Value is zero " << std::endl;
         exit(1);
     }
-    std::vector<Vector3<T>> axis(MCMove<T, RandomNumberGenerator>::integratorMSMC.particles->size() - 1);
-    std::vector<double> angle(MCMove<T, RandomNumberGenerator>::integratorMSMC.particles->size() - 1);
-    for(int j = 0; j < (MCMove<T, RandomNumberGenerator>::integratorMSMC.particles->size() - 1); ++j)
+    std::vector<Vector3<T>> axis(MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size() - 1);
+    std::vector<double> angle(MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size() - 1);
+    for(unsigned int j = 0; j < (MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size() - 1); ++j)
     {
         angle[j] =  (MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomNumberGenerator()->getRandIn01() - 0.5) * MCMove<T, RandomNumberGenerator>::stepSize;
-        MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomUtilities()->setRandomOnSphere(axis[j]);
-        MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()[j+1]->rotateBy(axis[j], angle[j]);
+        MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomUtilities()->setRandomOnSphere(&axis[j]);
+        MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j+1)->rotateBy(axis[j], angle[j]);
     }
     double newValue = MCMove<T, RandomNumberGenerator>::clusterSum.value();
     double ratio = newValue / oldValue;
@@ -139,9 +139,9 @@ doTrial(){
 
     if((ratio < 1) && (ratio < MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomNumberGenerator()->getRandIn01()))
     {
-        for(int j = 0; j < (MCMove<T, RandomNumberGenerator>::integratorMSMC.particles->size() - 1); ++j)
+        for(unsigned int j = 0; j < (MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size() - 1); ++j)
         {
-            MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()[j+1]->rotateBy(axis[j], -angle[j]);
+            MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j+1)->rotateBy(axis[j], -angle[j]);
         }
     }
 }
@@ -164,14 +164,14 @@ MCMoveChainVirial<T, RandomNumberGenerator>::
 template <class T, class RandomNumberGenerator>
 void MCMoveChainVirial<T, RandomNumberGenerator>::
 doTrial() {
-    const Vector3<T> rPrev = MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()[0]->getCenter();
+    const Vector3<T> rPrev = MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(0)->getCenter();
     Vector3<T> sPrev = rPrev;
-    for(int j = 1; j < (MCMove<T, RandomNumberGenerator>::integratorMSMC.particles->size() - 1); ++j)
+    for(unsigned int j = 1; j < (MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size() - 1); ++j)
     {
-        const Vector3<T> r = MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()[j]->getCenter();
-        MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomUtilities()->setRandomInSphere(r);
+        Vector3<T> r = MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j)->getCenter();
+        MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomUtilities()->setRandomInSphere(&r);
         Vector3<T> s = r*sigma + sPrev;
-        MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()[j]->setCenter(s);
+        MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j)->setCenter(s);
          sPrev = s;
     }
 }

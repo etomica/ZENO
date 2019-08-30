@@ -25,8 +25,8 @@ MeterOverlap(ClusterSum<T, RandomNumberGenerator> & clusterSumPrimary,
              ClusterSum<T, RandomNumberGenerator> & clusterSumPerturb,
              double alphaCenter, double alphaSpan, int numAlpha) :
              clusterSumPrimary(clusterSumPrimary), clusterSumPerturb(clusterSumPerturb),
-             numAlpha(numAlpha){
-    setAlpha(alphaCenter, alphaSpan, numAlpha);
+             numAlpha(numAlpha) {
+    setAlpha(alphaCenter, alphaSpan);
 }
 
 template <class T, class RandomNumberGenerator>
@@ -41,8 +41,7 @@ MeterOverlap<T, RandomNumberGenerator>::
 template <class T, class RandomNumberGenerator>
 void
 MeterOverlap<T, RandomNumberGenerator>::
-setAlpha(double alphaCenter, double alphaSpan, int nAlpha) {
-    numAlpha = nAlpha;
+setAlpha(double alphaCenter, double alphaSpan) {
     if (numAlpha > 1) {
         numData = numAlpha;
         if (alphaSpan == 0) {
@@ -121,13 +120,11 @@ collectData() {
         currentBlockSum[i] += data[i];
     }
     if (--blockCountdown == 0) {
-        if (doCovariance) {
-            double blockSizeSq = ((double) blockSize) * ((double) blockSize);
-            for (int i = 0; i < numData; ++i) {
-                for (int j = 0; j <= i; ++j) {
-                    double ijx = currentBlockSum[i] * currentBlockSum[j] / blockSizeSq;
-                    blockCovSum[i][j] += ijx;
-                }
+        double blockSizeSq = ((double) blockSize) * ((double) blockSize);
+        for (int i = 0; i < numData; ++i) {
+            for (int j = 0; j <= i; ++j) {
+                double ijx = currentBlockSum[i] * currentBlockSum[j] / blockSizeSq;
+                blockCovSum[i][j] += ijx;
             }
         }
         for (int i = 0; i < numData; ++i) {
@@ -207,17 +204,15 @@ reset() {
         firstBlockSum = (double *) realloc(firstBlockSum, numData * sizeof(double));
     }
     stats = (double **) realloc2D((void **) stats, numData, 4, sizeof(double));
-    if (doCovariance) {
-        blockCovSum = (double **) realloc2D((void **) blockCovSum, numData, numData, sizeof(double));
-        for (int i = 0; i < numData; ++i) {
-            for (int j = 0; j <= i; ++j) {
-                blockCovSum[i][j] = 0;
-            }
+    blockCovSum = (double **) realloc2D((void **) blockCovSum, numData, numData, sizeof(double));
+    for (int i = 0; i < numData; ++i) {
+        for (int j = 0; j <= i; ++j) {
+            blockCovSum[i][j] = 0;
         }
-        blockCovariance = (double **) realloc2D((void **) blockCovariance, numData, numData, sizeof(double));
     }
+    blockCovariance = (double **) realloc2D((void **) blockCovariance, numData, numData, sizeof(double));
     ratioStats = (double ** ) realloc2D ((void ** ) ratioStats, numData, 3, sizeof(double));
-    if (doCovariance) ratioCovariance = (double ** ) realloc2D ((void ** ) ratioCovariance, numData, numData, sizeof(double));
+    ratioCovariance = (double ** ) realloc2D ((void ** ) ratioCovariance, numData, numData, sizeof(double));
 }
 
 /// Returns statistics.

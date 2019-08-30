@@ -28,8 +28,8 @@
 template <class T>
 class Particle {
  public:
-    Particle(MixedModel<T> & model,
-            Sphere<T> & boundingSphere);
+    Particle(MixedModel<T> const & model,
+            Sphere<T> const & boundingSphere);
   ~Particle();
 
   int numSpheres();
@@ -38,14 +38,14 @@ class Particle {
   void translateBy(Vector3<T> step);
   void rotateBy(Vector3<T> axis, T angle);
   const Vector3<T> setFromSpherePosition(int index) const;
-  MixedModel<T> * getModel();
-  Sphere<T> * getBoundingSphere();
+  MixedModel<T> const * getModel();
+  Sphere<T> const * getBoundingSphere();
 
  private:
-    MixedModel<T> & model;
+    MixedModel<T> const & model;
     Matrix3x3<T> orientation{1,0,0,0,1,0,0,0,1};
     Vector3<T> center{0,0,0};
-    Sphere<T> & boundingSphere;
+    Sphere<T> const & boundingSphere;
 };
 #endif
 

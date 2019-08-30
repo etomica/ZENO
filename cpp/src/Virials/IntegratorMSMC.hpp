@@ -36,11 +36,11 @@ IntegratorMSMC(Parameters const * parameters,
               randomNumberGenerator(randomNumberGenerator),
               boundingSpheres(boundingSpheres),
               numParticles(numParticles), randomUtilities(randomNumberGenerator){
-    for(int i = 0; i < numParticles.size(); ++i)
+    for(unsigned int i = 0; i < numParticles.size(); ++i)
     {
         for (int j =0; j < numParticles[i]; ++j)
         {
-            particles.push_back(new Particle<T> (models[i], boundingSpheres[i]));
+            particles.push_back(new Particle<T> (* models[i], * boundingSpheres[i]));
         }
     }
 
@@ -63,21 +63,21 @@ IntegratorMSMC<T,
                RandomNumberGenerator>::
 doStep(long long numSteps){
     double totalProb = 0.0;
-    for(int i = 0; i < moveProbs.size(); ++i) totalProb += moveProbs[i];
+    for(unsigned int i = 0; i < moveProbs.size(); ++i) totalProb += moveProbs[i];
     for(int j = 0; j < numSteps; ++j)
     {
         double cumProb = 0.0;
         double random = totalProb * randomNumberGenerator->getRandIn01();
-        for(int i = 0; i < mcMoves.size(); ++i)
+        for(unsigned int i = 0; i < mcMoves.size(); ++i)
         {
             cumProb += moveProbs[i];
             if(random < cumProb)
             {
-                mcMoves[i].doTrial();
+                mcMoves[i]->doTrial();
                 break;
             }
         }
-        meterOverlap.collectData();
+        meterOverlap->collectData();
     }
 }
 
@@ -85,10 +85,10 @@ doStep(long long numSteps){
 ///
 template <class T,
         class RandomNumberGenerator>
-std::vector<Particle<T> *>
+std::vector<Particle<T> *> *
 IntegratorMSMC<T,RandomNumberGenerator>::
 getParticles(){
-    return particles;
+    return &particles;
 }
 
 /// Returns random number generator.

@@ -61,7 +61,7 @@ value(){
     double fValues[n][n];
     for(int iMol1 = 0; iMol1 < n; ++iMol1){
         for(int iMol2 = iMol1 + 1; iMol2 < n; ++iMol2){
-            bool overlapped = ClusterSum<T, RandomNumberGenerator>::overlapTester.isOverlapped(ClusterSum<T, RandomNumberGenerator>::integratorMSMC.getParticles()[iMol1], ClusterSum<T, RandomNumberGenerator>::integratorMSMC.getParticles()[iMol2]);
+            bool overlapped = ClusterSum<T, RandomNumberGenerator>::overlapTester.isOverlapped(ClusterSum<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(iMol1), ClusterSum<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(iMol2));
             fValues[iMol1][iMol2] = fValues[iMol2][iMol1] = overlapped ? 1 : 0;
         }
     }
@@ -125,7 +125,7 @@ template <class T,
 ClusterSumWheatleyRecursion<T, RandomNumberGenerator>::
 ClusterSumWheatleyRecursion(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, OverlapTester<T> const & overlapTester):
 ClusterSum<T, RandomNumberGenerator>(integratorMSMC, overlapTester){
-    const int n = integratorMSMC->getParticles()->size();
+    const int n = integratorMSMC.getParticles()->size();
     int factorial = 1;
     for (int m = 2; m <= n; ++m){
         factorial *= m;
@@ -154,7 +154,7 @@ value() {
         int i = 1 << iMol1;
         fQ[i] = 1.0;
         for(int iMol2 = iMol1 + 1; iMol2 < n; ++iMol2){
-            bool overlapped = ClusterSum<T, RandomNumberGenerator>::overlapTester.isOverlapped(ClusterSum<T, RandomNumberGenerator>::integratorMSMC.getParticles()[iMol1], ClusterSum<T, RandomNumberGenerator>::integratorMSMC.getParticles()[iMol2]);
+            bool overlapped = ClusterSum<T, RandomNumberGenerator>::overlapTester.isOverlapped(ClusterSum<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(iMol1), ClusterSum<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(iMol2));
             fQ[i|(1<<iMol2)] = overlapped ? 0 : 1;
         }
     }

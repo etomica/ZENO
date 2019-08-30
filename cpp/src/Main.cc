@@ -239,16 +239,6 @@ doInteriorSamplingThread(Parameters const * parameters,
 			 Timer const * totalTimer,
 			 RandomNumberGenerator * randomNumberGenerators,
 			 ResultsInterior * resultsInterior);
-/*
-void
-doDummy(Parameters const * parameters,
-        int threadNum,
-        Timer const * totalTimer,
-        RandomNumberGenerator * randomNumberGenerator,
-        std::vector<Sphere<double> *> & boundingSpheres,
-        std::vector<int> & numParticles,
-        std::vector<MixedModel<double> *> & particles,
-        OverlapTester<double> const & overlapTester);*/
 
 void
 doVirialSampling(Parameters const & parameters,
@@ -267,19 +257,7 @@ doVirialSamplingThread(Parameters const * parameters,
                        Timer const * totalTimer,
                        RandomNumberGenerator * randomNumberGenerator,
                        Model const & model);
-/*void
-doVirialSamplingThread(Parameters const * parameters,
-                       BoundingSphere const * boundingSphere,
-                       Model const * insideOutsideTester,
-                       int threadNum,
-                       long long numSamples,
-                       Timer const * totalTimer,
-                       RandomNumberGenerator * randomNumberGenerator,
-                       std::vector<Sphere<double> *> & boundingSpheres,
-                       std::vector<int> & numParticles,
-                       std::vector<MixedModel<double> *> & particles,
-                       OverlapTester<double> const & overlapTester);
-*/
+
 void
 printOutput(BoundingSphere const & boundingSphere,
 	    ResultsInterior const * resultsInterior,
@@ -323,8 +301,6 @@ writePoints(std::string const & fileName,
 // ================================================================
 
 int main(int argc, char **argv) {
-
-  //Dummy dummy;
 
   Timer totalTimer;
 
@@ -452,6 +428,14 @@ int main(int argc, char **argv) {
   if (getInteriorResultsSuccess != 0) {
     return getInteriorResultsSuccess;
   }
+
+  doVirialSampling(parameters,
+                   virialStepsInProcess,
+                   boundingSphere,
+                   model,
+                   totalTimer,
+                   &threadRNGs,
+                   &sampleTime);
 
   initializeTime += initializeTimer.getTime();
 
@@ -1313,7 +1297,7 @@ doVirialSampling(Parameters const & parameters,
 void
 doVirialSamplingThread(Parameters const * parameters,
         int threadNum,
-        long long stepsInProcess,
+        long long stepsInThread,
         BoundingSphere const & boundingSphere,
         Timer const * totalTimer,
         RandomNumberGenerator * randomNumberGenerator,
@@ -1335,11 +1319,36 @@ doVirialSamplingThread(Parameters const * parameters,
                                                                  models);
 
     ClusterSumChain<double, RandomNumberGenerator> clusterSumRef(refIntegrator, overlapTester, 0.0, 1.0);
-    ClusterSum<double, RandomNumberGenerator> clusterSumTarget(refIntegrator, overlapTester);
+    ClusterSumWheatleyRecursion<double, RandomNumberGenerator> clusterSumTarget(refIntegrator, overlapTester);
     MCMoveChainVirial<double, RandomNumberGenerator> mcMoveChain(refIntegrator, clusterSumRef, 2 * boundingSphere.getRadius());
     MCMoveRotate<double , RandomNumberGenerator> mcMoveRotateRef(refIntegrator, clusterSumRef);
     refIntegrator.addMove(&mcMoveChain, 1.0);
     refIntegrator.addMove(&mcMoveRotateRef, 1.0);
+
+    IntegratorMSMC<double, RandomNumberGenerator> targetIntegrator(parameters,
+                                                                threadNum,
+                                                                totalTimer,
+                                                                randomNumberGenerator,
+                                                                boundingSpheres,
+                                                                numParticles,
+                                                                models);
+
+    ClusterSumChain<double, RandomNumberGenerator> clusterSumRefT(targetIntegrator, overlapTester, 0.0, 1.0);
+    ClusterSumWheatleyRecursion<double, RandomNumberGenerator> clusterSumTargetT(targetIntegrator, overlapTester);
+    MCMoveTranslate<double, RandomNumberGenerator> mcMoveTranslate(targetIntegrator, clusterSumTargetT);
+    MCMoveRotate<double , RandomNumberGenerator> mcMoveRotateTarget(targetIntegrator, clusterSumTargetT);
+    targetIntegrator.addMove(&mcMoveTranslate, 1.0);
+    targetIntegrator.addMove(&mcMoveRotateTarget, 1.0);
+
+    VirialAlpha<double,RandomNumberGenerator> virialAlpha(refIntegrator, targetIntegrator,
+            clusterSumRef, clusterSumTarget, clusterSumRefT, clusterSumTargetT);
+    virialAlpha.setVerbose(true);
+    virialAlpha.run();
+
+    double* alphaStats = virialAlpha.getAlphaStatistics();
+    printf("alpha: %e  %e\n", alphaStats[0], alphaStats[1]);
+    printf("alpha block correlation: %f\n", alphaStats[2]);
+    printf("alpha span: %f\n", alphaStats[3]);
 }
 
 /// Prints parameters, results, and (optionally) detailed running time

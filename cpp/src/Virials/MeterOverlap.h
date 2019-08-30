@@ -29,7 +29,7 @@ class MeterOverlap {
  public:
     MeterOverlap(ClusterSum<T, RandomNumberGenerator> & clusterSumPrimary, ClusterSum<T, RandomNumberGenerator> & clusterSumPerturb, double alphaCenter, double alphaSpan, int numAlpha);
     ~MeterOverlap();
-    void setAlpha(double alphaCenter, double alphaSpan, int nAlpha);
+    void setAlpha(double alphaCenter, double alphaSpan);
     int getNumAlpha();
     const double * getAlpha();
     void collectData();
@@ -111,7 +111,6 @@ private:
     double ** blockSums;
     double ** blockCovariance;
     double ** blockCovSum;
-    const bool doCovariance;
     double ** ratioStats;
     double ** ratioCovariance;
 };

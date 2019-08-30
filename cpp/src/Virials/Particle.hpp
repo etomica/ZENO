@@ -20,7 +20,7 @@
 
 template <class T>
 Particle<T>::
-Particle(MixedModel<T> & model, Sphere<T> & boundingSphere) : model(model), boundingSphere(boundingSphere)
+Particle(MixedModel<T> const & model, Sphere<T> const & boundingSphere) : model(model), boundingSphere(boundingSphere)
               {
 }
 
@@ -91,18 +91,18 @@ setFromSpherePosition( int index) const {
 /// Obtain the assembly of spheres which constitute a particle.
 ///
 template <class T>
-MixedModel<T> *
+MixedModel<T> const *
 Particle<T>::
 getModel(){
-    return model;
+    return &model;
 }
 
 /// Returns a bounding sphere around the assembly of spheres.
 ///
 template <class T>
-Sphere<T> *
+Sphere<T> const *
 Particle<T>::
 getBoundingSphere(){
-    return boundingSphere;
+    return &boundingSphere;
 }
 

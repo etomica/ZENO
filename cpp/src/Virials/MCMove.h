@@ -28,14 +28,14 @@ template <class T,
         class RandomNumberGenerator>
 class MCMove {
  public:
-    MCMove(IntegratorMSMC<T, RandomNumberGenerator> & integratorMsmc, ClusterSum<T, RandomNumberGenerator> & clusterSum);
+    MCMove(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T, RandomNumberGenerator> & clusterSum);
   virtual ~MCMove();
   virtual void doTrial() = 0;
   double getStepSize();
   void setStepSize(double sS);
 
 protected:
-    IntegratorMSMC<T, RandomNumberGenerator> & integratorMsmc;
+    IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC;
     ClusterSum<T, RandomNumberGenerator> & clusterSum;
     double stepSize;
     void adjustStepSize();

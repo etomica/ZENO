@@ -26,7 +26,7 @@ class OverlapTester {
     OverlapTester();
   ~OverlapTester();
 
-  bool isOverlapped(Particle<T> * a, Particle<T> * b);
+  bool isOverlapped(Particle<T> * a, Particle<T> * b) const;
 };
 
 #endif

@@ -30,11 +30,11 @@ class ClusterSum {
  public:
     ClusterSum(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, OverlapTester<T> const & overlapTester);
     virtual ~ClusterSum();
-    virtual double value();
+    virtual double value() = 0;
 
  protected:
-    OverlapTester<T> const & overlapTester;
     IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC;
+    OverlapTester<T> const & overlapTester;
 };
 
 ///Sub class of ClusterSum to compute cluster sum for chains.
