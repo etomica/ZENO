@@ -78,7 +78,7 @@ analyze(double &jBest) {
     double **targetOverStats = targetMeter.getStatistics();
     for (int j=0; j<numAlpha; j++) {
         lnRatio[j] = log(refOverStats[j][MeterOverlap<T, RandomNumberGenerator>::AVG_AVG]/targetOverStats[j][MeterOverlap<T, RandomNumberGenerator>::AVG_AVG]);
-        printf("alpha  avg: %22.15e   lnRatio: %12.5e\n", alpha[j], lnRatio[j]);
+        printf("J:%d alpha  avg: %22.15e   lnRatio: %12.5e\n", j, alpha[j], lnRatio[j]);
         if (j>0 && lnRatio[j]*lnRatio[j-1] <= 0) {
             // linear interpolation on log scale
             double xj = lnRatio[j-1]/(lnRatio[j-1]-lnRatio[j]);
@@ -106,7 +106,6 @@ analyze(double &jBest) {
                                          targetOverStats[jb][MeterOverlap<T, RandomNumberGenerator>::AVG_AVG], targetOverStats[jb][MeterOverlap<T, RandomNumberGenerator>::AVG_ERR], 0);
 
     printf("alpha  avg: %22.15e   newAlpha: %12.5e \n", newAlpha, newAlphaErr);
-    exit(0);
 }
 
 template <class T,

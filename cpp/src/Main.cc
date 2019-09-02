@@ -437,7 +437,7 @@ int main(int argc, char **argv) {
                    &threadRNGs,
                    &sampleTime);
 
-  initializeTime += initializeTimer.getTime();
+    initializeTime += initializeTimer.getTime();
 
   if (parameters.getMaxRunTimeWasSet() &&
       (totalTimer.getTime() > parameters.getMaxRunTime())) {
@@ -1248,7 +1248,7 @@ doVirialSampling(Parameters const & parameters,
     sampleTimer.start();
 
     const int numThreads = parameters.getNumThreads();
-
+    std::cout<<numThreads<<std::endl;
     std::thread * * threads = new std::thread *[numThreads];
 
     for (int threadNum = 0; threadNum < numThreads; threadNum++) {
@@ -1268,13 +1268,6 @@ doVirialSampling(Parameters const & parameters,
                                 &totalTimer,
                                 &(threadRNGs->at(threadNum)),
                                 model);
-        doVirialSamplingThread(&parameters,
-                threadNum,
-                stepsInThread,
-                boundingSphere,
-                &totalTimer,
-                &(threadRNGs->at(threadNum)),
-                model);
     }
 
     for (int threadNum = 0; threadNum < numThreads; threadNum++) {
@@ -1310,7 +1303,7 @@ doVirialSamplingThread(Parameters const * parameters,
     std::vector<Model const *> models;
     models.push_back(&model);
     OverlapTester<double> const overlapTester;
-    double refDiameter = 2 * boundingSphere.getRadius() * 2;
+    double refDiameter = 2 * boundingSphere.getRadius();
     IntegratorMSMC<double, RandomNumberGenerator> refIntegrator(parameters,
                                                                  threadNum,
                                                                  totalTimer,
@@ -1321,7 +1314,7 @@ doVirialSamplingThread(Parameters const * parameters,
 
     ClusterSumChain<double, RandomNumberGenerator> clusterSumRef(refIntegrator, refDiameter, 0.0, 1.0);
     ClusterSumWheatleyRecursion<double, RandomNumberGenerator> clusterSumTarget(refIntegrator, &overlapTester);
-    MCMoveChainVirial<double, RandomNumberGenerator> mcMoveChain(refIntegrator, &clusterSumRef, 2 * boundingSphere.getRadius());
+    MCMoveChainVirial<double, RandomNumberGenerator> mcMoveChain(refIntegrator, &clusterSumRef, refDiameter);
     MCMoveRotate<double , RandomNumberGenerator> mcMoveRotateRef(refIntegrator, &clusterSumRef);
     refIntegrator.addMove(&mcMoveChain, 1.0);
     refIntegrator.addMove(&mcMoveRotateRef, 1.0);
@@ -1350,6 +1343,14 @@ doVirialSamplingThread(Parameters const * parameters,
     printf("alpha: %e  %e\n", alphaStats[0], alphaStats[1]);
     printf("alpha block correlation: %f\n", alphaStats[2]);
     printf("alpha span: %f\n", alphaStats[3]);
+
+    double refIntegral = pow(4.0*M_PI*refDiameter*refDiameter*refDiameter/3.0,parameters->getVirialCoefficientOrder()-1)/2;
+    for (int i=2; i<=parameters->getVirialCoefficientOrder(); i++) refIntegral *= i;
+    VirialProduction<double, RandomNumberGenerator> virialProduction(refIntegrator,targetIntegrator,
+            clusterSumRef, clusterSumTarget, clusterSumRefT, clusterSumTargetT, alphaStats[0],
+            refIntegral);
+    virialProduction.runSteps(stepsInThread);
+    virialProduction.printResults(NULL);
 }
 
 /// Prints parameters, results, and (optionally) detailed running time

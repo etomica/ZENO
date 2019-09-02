@@ -37,8 +37,20 @@ MeterOverlap(ClusterSum<T, RandomNumberGenerator> & clusterSumPrimary,
 template <class T, class RandomNumberGenerator>
 MeterOverlap<T, RandomNumberGenerator>::
   ~MeterOverlap() {
-    delete[] data;
     delete[] alpha;
+    free(data);
+    free(mostRecent);
+    free(currentBlockSum);
+    free(blockSum);
+    free(blockSum2);
+    free(correlationSum);
+    free(prevBlockSum);
+    free(firstBlockSum);
+    free2D((void **)stats);
+    free2D((void **)blockCovSum);
+    free2D((void **)blockCovariance);
+    free2D((void **)ratioStats);
+    free2D((void **)ratioCovariance);
 }
 
 /// Sets alpha.
@@ -64,6 +76,7 @@ setAlpha(double alphaCenter, double alphaSpan) {
 
     if (numAlpha == 1) {
         alpha[0] = alphaCenter;
+        reset();
         return;
     }
     for (int i = 0; i < numAlpha; ++i) {
@@ -379,4 +392,9 @@ getRatioCorrelation() {
         }
     }
     return ratioCovariance;
+}
+
+template<class T, class RandomNumberGenerator>
+int MeterOverlap<T, RandomNumberGenerator>::getNumData() {
+    return numData;
 }

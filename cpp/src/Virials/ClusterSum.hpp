@@ -40,7 +40,7 @@ template <class T,
 ClusterSumChain<T, RandomNumberGenerator>::
 ClusterSumChain(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, double diameter,
                 double ringFac, double chainFac):
-        ClusterSum<T, RandomNumberGenerator>(integratorMSMC, NULL), ringFac(ringFac), chainFac(chainFac){
+        ClusterSum<T, RandomNumberGenerator>(integratorMSMC, NULL), diameter(diameter), ringFac(ringFac), chainFac(chainFac){
 }
 
 template <class T,
@@ -61,8 +61,8 @@ value(){
     double fValues[n][n];
     for(int iMol1 = 0; iMol1 < n; ++iMol1){
         for(int iMol2 = iMol1 + 1; iMol2 < n; ++iMol2){
-            Vector3<T> x = ClusterSum<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(iMol1)->getBoundingSphere()->getCenter();
-            Vector3<T> y = ClusterSum<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(iMol2)->getBoundingSphere()->getCenter();
+            Vector3<T> x = ClusterSum<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(iMol1)->getCenter();
+            Vector3<T> y = ClusterSum<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(iMol2)->getCenter();
             Vector3<T> distCenterVec = x - y;
             T distCenterSqr = distCenterVec.getMagnitudeSqr();
             bool overlapped = distCenterSqr < diameter*diameter;

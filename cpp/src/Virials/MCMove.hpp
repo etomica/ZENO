@@ -165,14 +165,14 @@ MCMoveChainVirial<T, RandomNumberGenerator>::
 ~MCMoveChainVirial() {
 }
 
-/// Perform a monte carlo trail for chain move.
+/// Perform a monte carlo trial for chain move.
 ///
 template <class T, class RandomNumberGenerator>
 void MCMoveChainVirial<T, RandomNumberGenerator>::
 doTrial() {
     const Vector3<T> rPrev = MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(0)->getCenter();
     Vector3<T> sPrev = rPrev;
-    for(unsigned int j = 1; j < (MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size() - 1); ++j)
+    for(unsigned int j = 1; j < MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size(); ++j)
     {
         Vector3<T> r = MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j)->getCenter();
         MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomUtilities()->setRandomInSphere(&r);
