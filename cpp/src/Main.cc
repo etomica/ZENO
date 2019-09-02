@@ -60,7 +60,7 @@
 
 #include "ResultsZeno.h"
 #include "ResultsInterior.h"
-//#include "ResultsVirial.h"
+#include "ResultsVirial.h"
 #include "ResultsCompiler.h"
 
 #include "Geometry/Sphere.h"
@@ -124,6 +124,8 @@ using BiasedSpherePointGenerator =
 			  RandomSpherePointGenerator>;
 
 #include "SpherePoint/RandomBallPointRejection.h"
+#include "ResultsVirial.h"
+
 using RandomBallPointGenerator =
   RandomBallPointRejection<double,
 			   RandomNumberGenerator>;
@@ -247,16 +249,18 @@ doVirialSampling(Parameters const & parameters,
                  Model const & model,
                  Timer const & totalTimer,
                  std::vector<RandomNumberGenerator> * threadRNGs,
+                 ResultsVirial<double, RandomNumberGenerator> * * resultsVirial,
                  double * sampleTime);
 
 void
 doVirialSamplingThread(Parameters const * parameters,
-                       int threadNum,
-                       long long stepsInProcess,
                        BoundingSphere const & boundingSphere,
+                       Model const & model,
+                       int threadNum,
+                       long long stepsInThread,
                        Timer const * totalTimer,
                        RandomNumberGenerator * randomNumberGenerator,
-                       Model const & model);
+                       ResultsVirial<double, RandomNumberGenerator> * resultsVirial);
 
 void
 printOutput(BoundingSphere const & boundingSphere,
@@ -330,12 +334,11 @@ int main(int argc, char **argv) {
 
   long long numWalksInProcess   = 0;
   long long numSamplesInProcess = 0;
+  long long virialStepsInProcess = 0;
 
   double initializeTime = 0;
   double readTime       = 0;
   double broadcastTime  = 0;
-
-  long long virialStepsInProcess = 0;
 
   Model model;
 
@@ -429,15 +432,18 @@ int main(int argc, char **argv) {
     return getInteriorResultsSuccess;
   }
 
+  ResultsVirial<double , RandomNumberGenerator> * resultsVirial = NULL;
+
   doVirialSampling(parameters,
                    virialStepsInProcess,
                    boundingSphere,
                    model,
                    totalTimer,
                    &threadRNGs,
+                   &resultsVirial,
                    &sampleTime);
 
-    initializeTime += initializeTimer.getTime();
+  initializeTime += initializeTimer.getTime();
 
   if (parameters.getMaxRunTimeWasSet() &&
       (totalTimer.getTime() > parameters.getMaxRunTime())) {
@@ -468,6 +474,7 @@ int main(int argc, char **argv) {
 
   delete resultsZeno;
   delete resultsInterior;
+  delete resultsVirial;
 
 #ifdef USE_MPI
   MPI_Finalize();
@@ -1242,10 +1249,13 @@ doVirialSampling(Parameters const & parameters,
                  Model const & model,
                  Timer const & totalTimer,
                  std::vector<RandomNumberGenerator> * threadRNGs,
+                 ResultsVirial<double, RandomNumberGenerator> * * resultsVirial,
                  double * sampleTime) {
 
     Timer sampleTimer;
     sampleTimer.start();
+
+    *resultsVirial = new ResultsVirial<double, RandomNumberGenerator>(parameters.getNumThreads());
 
     const int numThreads = parameters.getNumThreads();
     std::cout<<numThreads<<std::endl;
@@ -1262,12 +1272,13 @@ doVirialSampling(Parameters const & parameters,
         threads[threadNum] =
                 new std::thread(doVirialSamplingThread,
                                 &parameters,
+                                boundingSphere,
+                                model,
                                 threadNum,
                                 stepsInThread,
-                                boundingSphere,
                                 &totalTimer,
                                 &(threadRNGs->at(threadNum)),
-                                model);
+                                *resultsVirial);
     }
 
     for (int threadNum = 0; threadNum < numThreads; threadNum++) {
@@ -1289,12 +1300,13 @@ doVirialSampling(Parameters const & parameters,
 ///
 void
 doVirialSamplingThread(Parameters const * parameters,
-        int threadNum,
-        long long stepsInThread,
-        BoundingSphere const & boundingSphere,
-        Timer const * totalTimer,
-        RandomNumberGenerator * randomNumberGenerator,
-        Model const & model){
+                       BoundingSphere const & boundingSphere,
+                       Model const & model,
+                       int threadNum,
+                       long long stepsInThread,
+                       Timer const * totalTimer,
+                       RandomNumberGenerator * randomNumberGenerator,
+                       ResultsVirial<double, RandomNumberGenerator> * resultsVirial){
 
     std::vector <BoundingSphere const *> boundingSpheres;
     boundingSpheres.push_back(&boundingSphere);
@@ -1351,6 +1363,8 @@ doVirialSamplingThread(Parameters const * parameters,
             refIntegral);
     virialProduction.runSteps(stepsInThread);
     virialProduction.printResults(NULL);
+
+    resultsVirial->putData(threadNum, virialProduction.getRefMeter(), virialProduction.getTargetMeter());
 }
 
 /// Prints parameters, results, and (optionally) detailed running time

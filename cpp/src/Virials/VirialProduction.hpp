@@ -244,3 +244,17 @@ runSteps(long long numSteps) {
         if (subSteps > numSteps-thisSteps) subSteps = numSteps - thisSteps;
     }
 }
+
+template <class T,
+        class RandomNumberGenerator>
+MeterOverlap<T, RandomNumberGenerator> VirialProduction<T, RandomNumberGenerator>::
+getRefMeter() {
+    return refMeter;
+}
+
+template <class T,
+        class RandomNumberGenerator>
+MeterOverlap<T, RandomNumberGenerator> VirialProduction<T, RandomNumberGenerator>::
+getTargetMeter() {
+    return targetMeter;
+}

@@ -60,6 +60,8 @@ public:
     double** getRefRatioStats();
     double** getTargetRatioStats();
     double** getFullBCStats();
+    MeterOverlap<T, RandomNumberGenerator> getRefMeter();
+    MeterOverlap<T, RandomNumberGenerator> getTargetMeter();
 };
 
 #endif //VIRIAL_PRODUCTION_H
