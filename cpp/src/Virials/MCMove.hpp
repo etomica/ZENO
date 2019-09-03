@@ -21,7 +21,7 @@
 template <class T,
         class RandomNumberGenerator>
 MCMove<T, RandomNumberGenerator>::
-MCMove(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T, RandomNumberGenerator> * clusterSum) : integratorMSMC(integratorMSMC), clusterSum(clusterSum)
+MCMove(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T> * clusterSum) : integratorMSMC(integratorMSMC), clusterSum(clusterSum)
               {
     stepSize = 0;
     numTrials = 0;
@@ -47,7 +47,7 @@ MCMove<T, RandomNumberGenerator>::
 template <class T, 
         class RandomNumberGenerator>
 MCMoveTranslate<T, RandomNumberGenerator>::
-MCMoveTranslate(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T, RandomNumberGenerator> * clusterSum) : MCMove<T, RandomNumberGenerator>(integratorMSMC, clusterSum)
+MCMoveTranslate(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T> * clusterSum) : MCMove<T, RandomNumberGenerator>(integratorMSMC, clusterSum)
 {
     MCMove<T, RandomNumberGenerator>::stepSize = cbrt(integratorMSMC.getParticles()->at(0)->numSpheres())*integratorMSMC.getParticles()->at(0)->getModel()->getSpheres()->at(0).getRadius();
     MCMove<T, RandomNumberGenerator>::maxStepSize = 1000;
@@ -101,7 +101,7 @@ doTrial(){
 template <class T,
         class RandomNumberGenerator>
 MCMoveRotate<T, RandomNumberGenerator>::
-MCMoveRotate(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T, RandomNumberGenerator> * clusterSum) : MCMove<T, RandomNumberGenerator>(integratorMSMC, clusterSum)
+MCMoveRotate(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T> * clusterSum) : MCMove<T, RandomNumberGenerator>(integratorMSMC, clusterSum)
 {
     MCMove<T, RandomNumberGenerator>::stepSize = M_PI/4;
     MCMove<T, RandomNumberGenerator>::maxStepSize = M_PI/2;
@@ -156,7 +156,7 @@ doTrial(){
 ///
 template <class T, class RandomNumberGenerator>
 MCMoveChainVirial<T, RandomNumberGenerator>::
-MCMoveChainVirial(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T, RandomNumberGenerator> * clusterSum, double sigma): MCMove<T, RandomNumberGenerator>(integratorMSMC, clusterSum), sigma(sigma)
+MCMoveChainVirial(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T> * clusterSum, double sigma): MCMove<T, RandomNumberGenerator>(integratorMSMC, clusterSum), sigma(sigma)
 {
 }
 

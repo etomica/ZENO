@@ -249,8 +249,9 @@ doVirialSampling(Parameters const & parameters,
                  Model const & model,
                  Timer const & totalTimer,
                  std::vector<RandomNumberGenerator> * threadRNGs,
-                 ResultsVirial<double, RandomNumberGenerator> * * resultsVirial,
-                 double * sampleTime);
+                 ResultsVirial * * resultsVirial,
+                 double * virialTime,
+                 double * virialReduceTime);
 
 void
 doVirialSamplingThread(Parameters const * parameters,
@@ -260,12 +261,15 @@ doVirialSamplingThread(Parameters const * parameters,
                        long long stepsInThread,
                        Timer const * totalTimer,
                        RandomNumberGenerator * randomNumberGenerator,
-                       ResultsVirial<double, RandomNumberGenerator> * resultsVirial);
+                       ResultsVirial * resultsVirial,
+                       double refDiameter,
+                       double refIntegral);
 
 void
 printOutput(BoundingSphere const & boundingSphere,
 	    ResultsInterior const * resultsInterior,
 	    ResultsZeno const * resultsZeno,
+	    ResultsVirial const * resultsVirial,
 	    Parameters const & parameters, 
 	    double initializeTime,
 	    double readTime,
@@ -275,6 +279,8 @@ printOutput(BoundingSphere const & boundingSphere,
 	    double reduceTime,
 	    double sampleTime,
 	    double volumeReduceTime,
+	    double virialTime,
+	    double virialReduceTime,
 	    std::ofstream * csvOutputFile);
 
 template <typename T>
@@ -432,7 +438,10 @@ int main(int argc, char **argv) {
     return getInteriorResultsSuccess;
   }
 
-  ResultsVirial<double , RandomNumberGenerator> * resultsVirial = NULL;
+  ResultsVirial * resultsVirial = NULL;
+
+  double virialTime       = 0;
+  double virialReduceTime = 0;
 
   doVirialSampling(parameters,
                    virialStepsInProcess,
@@ -441,7 +450,8 @@ int main(int argc, char **argv) {
                    totalTimer,
                    &threadRNGs,
                    &resultsVirial,
-                   &sampleTime);
+                   &virialTime,
+                   &virialReduceTime);
 
   initializeTime += initializeTimer.getTime();
 
@@ -457,6 +467,7 @@ int main(int argc, char **argv) {
   printOutput(boundingSphere,
 	      resultsInterior,
 	      resultsZeno,
+	      resultsVirial,
 	      parameters,
 	      initializeTime,
 	      readTime,
@@ -466,6 +477,8 @@ int main(int argc, char **argv) {
 	      reduceTime,
 	      sampleTime,
 	      volumeReduceTime,
+	      virialTime,
+	      virialReduceTime,
 	      &csvOutputFile);
 
   savePointFiles(resultsInterior,
@@ -707,6 +720,7 @@ getWalkOnSpheresResults(long long numWalksInProcess,
 
       resultsCompiler.compile(*resultsZeno,
 			      NULL,
+			      NULL,
 			      boundingSphere);
 
       long long estimatedTotalNumWalks = 0;
@@ -837,6 +851,7 @@ getInteriorResults(long long numSamplesInProcess,
 
       resultsCompiler.compile(NULL,
 			      *resultsInterior,
+			      NULL,
 			      boundingSphere);
 
       long long estimatedTotalNumSamples = 
@@ -1249,13 +1264,19 @@ doVirialSampling(Parameters const & parameters,
                  Model const & model,
                  Timer const & totalTimer,
                  std::vector<RandomNumberGenerator> * threadRNGs,
-                 ResultsVirial<double, RandomNumberGenerator> * * resultsVirial,
-                 double * sampleTime) {
+                 ResultsVirial * * resultsVirial,
+                 double * virialTime,
+                 double * virialReduceTime) {
 
-    Timer sampleTimer;
-    sampleTimer.start();
+    Timer virialTimer, reduceTimer;
+    virialTimer.start();
 
-    *resultsVirial = new ResultsVirial<double, RandomNumberGenerator>(parameters.getNumThreads());
+    double refDiameter = 2 * boundingSphere.getRadius();
+    std::cout<<"refDiameter: "<<refDiameter<<std::endl;
+    double refIntegral = pow(4.0*M_PI*refDiameter*refDiameter*refDiameter/3.0,parameters.getVirialCoefficientOrder()-1)/2;
+    for (int i=2; i<=parameters.getVirialCoefficientOrder(); i++) refIntegral *= i;
+
+    *resultsVirial = new ResultsVirial(parameters.getNumThreads(), refIntegral);
 
     const int numThreads = parameters.getNumThreads();
     std::cout<<numThreads<<std::endl;
@@ -1278,21 +1299,27 @@ doVirialSampling(Parameters const & parameters,
                                 stepsInThread,
                                 &totalTimer,
                                 &(threadRNGs->at(threadNum)),
-                                *resultsVirial);
+                                *resultsVirial,
+                                refDiameter,
+                                refIntegral);
     }
 
     for (int threadNum = 0; threadNum < numThreads; threadNum++) {
         threads[threadNum]->join();
     }
 
+    reduceTimer.start();
+    (*resultsVirial)->reduce();
+    reduceTimer.stop();
+    *virialReduceTime += reduceTimer.getTime();
     for (int threadNum = 0; threadNum < numThreads; threadNum++) {
         delete threads[threadNum];
     }
 
     delete [] threads;
 
-    sampleTimer.stop();
-    *sampleTime += sampleTimer.getTime();
+    virialTimer.stop();
+    *virialTime += virialTimer.getTime();
 }
 
 /// Performs a given number of virial-coefficient samples and records the results.
@@ -1306,7 +1333,9 @@ doVirialSamplingThread(Parameters const * parameters,
                        long long stepsInThread,
                        Timer const * totalTimer,
                        RandomNumberGenerator * randomNumberGenerator,
-                       ResultsVirial<double, RandomNumberGenerator> * resultsVirial){
+                       ResultsVirial * resultsVirial,
+                       double refDiameter,
+                       double refIntegral){
 
     std::vector <BoundingSphere const *> boundingSpheres;
     boundingSpheres.push_back(&boundingSphere);
@@ -1315,7 +1344,6 @@ doVirialSamplingThread(Parameters const * parameters,
     std::vector<Model const *> models;
     models.push_back(&model);
     OverlapTester<double> const overlapTester;
-    double refDiameter = 2 * boundingSphere.getRadius();
     IntegratorMSMC<double, RandomNumberGenerator> refIntegrator(parameters,
                                                                  threadNum,
                                                                  totalTimer,
@@ -1324,8 +1352,8 @@ doVirialSamplingThread(Parameters const * parameters,
                                                                  numParticles,
                                                                  models);
 
-    ClusterSumChain<double, RandomNumberGenerator> clusterSumRef(refIntegrator, refDiameter, 0.0, 1.0);
-    ClusterSumWheatleyRecursion<double, RandomNumberGenerator> clusterSumTarget(refIntegrator, &overlapTester);
+    ClusterSumChain<double> clusterSumRef(refIntegrator.getParticles(), refDiameter, 0.0, 1.0);
+    ClusterSumWheatleyRecursion<double> clusterSumTarget(refIntegrator.getParticles(), &overlapTester);
     MCMoveChainVirial<double, RandomNumberGenerator> mcMoveChain(refIntegrator, &clusterSumRef, refDiameter);
     MCMoveRotate<double , RandomNumberGenerator> mcMoveRotateRef(refIntegrator, &clusterSumRef);
     refIntegrator.addMove(&mcMoveChain, 1.0);
@@ -1339,8 +1367,8 @@ doVirialSamplingThread(Parameters const * parameters,
                                                                 numParticles,
                                                                 models);
 
-    ClusterSumChain<double, RandomNumberGenerator> clusterSumRefT(targetIntegrator, refDiameter, 0.0, 1.0);
-    ClusterSumWheatleyRecursion<double, RandomNumberGenerator> clusterSumTargetT(targetIntegrator, &overlapTester);
+    ClusterSumChain<double> clusterSumRefT(targetIntegrator.getParticles(), refDiameter, 0.0, 1.0);
+    ClusterSumWheatleyRecursion<double> clusterSumTargetT(targetIntegrator.getParticles(), &overlapTester);
     MCMoveTranslate<double, RandomNumberGenerator> mcMoveTranslate(targetIntegrator, &clusterSumTargetT);
     MCMoveRotate<double , RandomNumberGenerator> mcMoveRotateTarget(targetIntegrator, &clusterSumTargetT);
     targetIntegrator.addMove(&mcMoveTranslate, 1.0);
@@ -1348,7 +1376,6 @@ doVirialSamplingThread(Parameters const * parameters,
 
     VirialAlpha<double,RandomNumberGenerator> virialAlpha(refIntegrator, targetIntegrator,
             clusterSumRef, clusterSumTarget, clusterSumRefT, clusterSumTargetT);
-    virialAlpha.setVerbose(true);
     virialAlpha.run();
 
     double* alphaStats = virialAlpha.getAlphaStatistics();
@@ -1356,8 +1383,6 @@ doVirialSamplingThread(Parameters const * parameters,
     printf("alpha block correlation: %f\n", alphaStats[2]);
     printf("alpha span: %f\n", alphaStats[3]);
 
-    double refIntegral = pow(4.0*M_PI*refDiameter*refDiameter*refDiameter/3.0,parameters->getVirialCoefficientOrder()-1)/2;
-    for (int i=2; i<=parameters->getVirialCoefficientOrder(); i++) refIntegral *= i;
     VirialProduction<double, RandomNumberGenerator> virialProduction(refIntegrator,targetIntegrator,
             clusterSumRef, clusterSumTarget, clusterSumRefT, clusterSumTargetT, alphaStats[0],
             refIntegral);
@@ -1374,6 +1399,7 @@ void
 printOutput(BoundingSphere const & boundingSphere,
 	    ResultsInterior const * resultsInterior,
 	    ResultsZeno const * resultsZeno,
+	    ResultsVirial const * resultsVirial,
 	    Parameters const & parameters, 
 	    double initializeTime,
 	    double readTime,
@@ -1383,6 +1409,8 @@ printOutput(BoundingSphere const & boundingSphere,
 	    double reduceTime,
 	    double sampleTime,
 	    double volumeReduceTime,
+	    double virialTime,
+	    double virialReduceTime,
 	    std::ofstream * csvOutputFile) {
   
   if (parameters.getMpiRank() == 0) {
@@ -1418,10 +1446,26 @@ printOutput(BoundingSphere const & boundingSphere,
       std::cout << std::endl;
     }
 
+    if (resultsVirial != NULL) {
+      printExactScalar("Number of virial steps performed",
+                       "num_virial_steps_performed",
+                       "1",
+                       resultsVirial->getNumSteps(),
+                       csvOutputFile);
+
+      printExactScalar("Fraction of steps in reference",
+                       "frac_steps_reference",
+                       "1",
+                       resultsVirial->getRefFrac(),
+                       csvOutputFile);
+
+      std::cout << std::endl;
+    }
     ResultsCompiler resultsCompiler(parameters);
 
     resultsCompiler.compile(resultsZeno,
 			    resultsInterior,
+			    resultsVirial,
 			    boundingSphere);
 
     resultsCompiler.print(parameters.getPrintCounts(),
@@ -1451,7 +1495,13 @@ printOutput(BoundingSphere const & boundingSphere,
 
       printExactScalar("Volume Reduce  ", "volume_reduce_time", "s",
 		       volumeReduceTime, csvOutputFile);
-      
+
+      printExactScalar("Virial         ", "virial_time", "s",
+              virialTime, csvOutputFile);
+
+      printExactScalar("Virial Reduce  ", "virial_reduce_time", "s",
+                     virialReduceTime, csvOutputFile);
+
       std::cout << std::endl;
     }
   }

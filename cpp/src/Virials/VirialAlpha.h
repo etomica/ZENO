@@ -30,17 +30,17 @@ class VirialAlpha {
 protected:
     long stepCount, nextCheck;
     IntegratorMSMC<T, RandomNumberGenerator> & refIntegrator, & targetIntegrator;
-    MeterOverlap<T, RandomNumberGenerator> refMeter, targetMeter;
+    MeterOverlap<T> refMeter, targetMeter;
     double newAlpha, newAlphaErr, alphaCor, alphaSpan;
     bool allDone, verbose;
     double alphaStats[4];
 public:
     VirialAlpha(IntegratorMSMC<T, RandomNumberGenerator> & refIntegrator,
                 IntegratorMSMC<T, RandomNumberGenerator> & targetIntegrator,
-                ClusterSum<T, RandomNumberGenerator> & refClusterRef,
-                ClusterSum<T, RandomNumberGenerator> & refClusterTarget,
-                ClusterSum<T, RandomNumberGenerator> & targetClusterRef,
-                ClusterSum<T, RandomNumberGenerator> & targetClusterTarget);
+                ClusterSum<T> & refClusterRef,
+                ClusterSum<T> & refClusterTarget,
+                ClusterSum<T> & targetClusterRef,
+                ClusterSum<T> & targetClusterTarget);
     ~VirialAlpha();
     void setVerbose(bool newVerbose);
     void getNewAlpha(double & newAlpha, double & newAlphaErr, double & alphaCor);

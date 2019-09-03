@@ -20,14 +20,13 @@
 
 ///Collects data and statistics.
 ///
-template <class T,
-        class RandomNumberGenerator>
+template <class T>
 class ClusterSum;
 
-template <class T, class RandomNumberGenerator>
+template <class T>
 class MeterOverlap {
  public:
-    MeterOverlap(ClusterSum<T, RandomNumberGenerator> & clusterSumPrimary, ClusterSum<T, RandomNumberGenerator> & clusterSumPerturb, double alphaCenter, double alphaSpan, int numAlpha);
+    MeterOverlap(ClusterSum<T> & clusterSumPrimary, ClusterSum<T> & clusterSumPerturb, double alphaCenter, double alphaSpan, int numAlpha);
     ~MeterOverlap();
     void setAlpha(double alphaCenter, double alphaSpan);
     int getNumAlpha();
@@ -36,9 +35,10 @@ class MeterOverlap {
     double ** getStatistics();
     double ** getBlockCovariance();
     double ** getBlockCorrelation();
-    void setBlockSize(long blockSize);
-    long getBlockSize() {return blockSize;}
-    long getBlockCount() {return blockCount;}
+    void setBlockSize(long long blockSize);
+    long long getBlockSize() {return blockSize;}
+    long long getBlockCount() {return blockCount;}
+    long long getNumSamples() { return  blockCount*blockSize + blockSize - blockCountdown;}
     void setNumData(int newNumData);
     int getNumData();
     virtual void reset();
@@ -95,14 +95,14 @@ class MeterOverlap {
         return ((vi / vd) / eid) * ((vj / vd) / ejd) * ((ed / vd) * (ed / vd) + (ei / vi) * (ej / vj) * cij - (ei / vi) * (ed / vd) * cid - (ej / vj) * (ed / vd) * cjd);
     }
 private:
-    ClusterSum<T, RandomNumberGenerator> & clusterSumPrimary;
-    ClusterSum<T, RandomNumberGenerator> & clusterSumPerturb;
+    ClusterSum<T> & clusterSumPrimary;
+    ClusterSum<T> & clusterSumPerturb;
     double * data;
     double * alpha;
     const int numAlpha;
     int numData;
-    long blockSize, blockCount;
-    long blockCountdown;
+    long long blockSize, blockCount;
+    long long blockCountdown;
     double * mostRecent;
     double * currentBlockSum, * blockSum, * blockSum2, * correlationSum;
     double * prevBlockSum, * firstBlockSum;

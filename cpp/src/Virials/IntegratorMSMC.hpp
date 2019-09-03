@@ -129,6 +129,6 @@ template <class T,
         class RandomNumberGenerator>
 void
 IntegratorMSMC<T, RandomNumberGenerator>::
-setMeter(MeterOverlap<T, RandomNumberGenerator> * meter) {
+setMeter(MeterOverlap<T> * meter) {
     meterOverlap = meter;
 }

@@ -19,10 +19,10 @@
 /// Constructs a class to collect data and statistics.
 ///
 
-template <class T, class RandomNumberGenerator>
-MeterOverlap<T, RandomNumberGenerator>::
-MeterOverlap(ClusterSum<T, RandomNumberGenerator> & clusterSumPrimary,
-             ClusterSum<T, RandomNumberGenerator> & clusterSumPerturb,
+template <class T>
+MeterOverlap<T>::
+MeterOverlap(ClusterSum<T> & clusterSumPrimary,
+             ClusterSum<T> & clusterSumPerturb,
              double alphaCenter, double alphaSpan, int numAlpha) :
              clusterSumPrimary(clusterSumPrimary), clusterSumPerturb(clusterSumPerturb),
              data(NULL), numAlpha(numAlpha), mostRecent(NULL), currentBlockSum(NULL), blockSum(NULL),
@@ -34,8 +34,8 @@ MeterOverlap(ClusterSum<T, RandomNumberGenerator> & clusterSumPrimary,
     setBlockSize(1000);
 }
 
-template <class T, class RandomNumberGenerator>
-MeterOverlap<T, RandomNumberGenerator>::
+template <class T>
+MeterOverlap<T>::
   ~MeterOverlap() {
     delete[] alpha;
     free(data);
@@ -55,9 +55,9 @@ MeterOverlap<T, RandomNumberGenerator>::
 
 /// Sets alpha.
 ///
-template <class T, class RandomNumberGenerator>
+template <class T>
 void
-MeterOverlap<T, RandomNumberGenerator>::
+MeterOverlap<T>::
 setAlpha(double alphaCenter, double alphaSpan) {
     if (numAlpha > 1) {
         numData = numAlpha;
@@ -87,27 +87,27 @@ setAlpha(double alphaCenter, double alphaSpan) {
 
 /// Returns numAlpha.
 ///
-template <class T, class RandomNumberGenerator>
+template <class T>
 int
-MeterOverlap<T, RandomNumberGenerator>::
+MeterOverlap<T>::
 getNumAlpha() {
  return numAlpha;
 }
 
 /// Returns alpha.
 ///
-template <class T, class RandomNumberGenerator>
+template <class T>
 const double *
-MeterOverlap<T, RandomNumberGenerator>::
+MeterOverlap<T>::
 getAlpha(){
     return alpha;
 }
 
 /// Collects data.
 ///
-template <class T, class RandomNumberGenerator>
+template <class T>
 void
-MeterOverlap<T, RandomNumberGenerator>::
+MeterOverlap<T>::
 collectData() {
     const double primaryValue = clusterSumPrimary.value();
     double pi = fabs(primaryValue);
@@ -160,19 +160,19 @@ collectData() {
 
 /// Sets block size.
 ///
-template <class T, class RandomNumberGenerator>
+template <class T>
 void
-MeterOverlap<T, RandomNumberGenerator>::
-setBlockSize(long bs) {
+MeterOverlap<T>::
+setBlockSize(long long bs) {
     blockSize = bs;
     reset();
 }
 
 /// Resets the averages and statistics.
 ///
-template <class T, class RandomNumberGenerator>
+template <class T>
 void
-MeterOverlap<T, RandomNumberGenerator>::
+MeterOverlap<T>::
 reset() {
     blockCount = 0;
     blockCountdown = blockSize;
@@ -207,9 +207,9 @@ reset() {
 
 /// Returns statistics.
 ///
-template <class T, class RandomNumberGenerator>
+template <class T>
 double **
-MeterOverlap<T, RandomNumberGenerator>::
+MeterOverlap<T>::
 getStatistics() {
     if (blockCount == 0) {
         for (int i = 0; i < numData; ++i) {
@@ -244,9 +244,9 @@ getStatistics() {
 
 /// Returns block covariance.
 ///
-template <class T, class RandomNumberGenerator>
+template <class T>
 double **
-MeterOverlap<T, RandomNumberGenerator>::
+MeterOverlap<T>::
 getBlockCovariance() {
     double totSamples = blockSize*blockCount;
     double totSq = totSamples*totSamples;
@@ -261,9 +261,9 @@ getBlockCovariance() {
 
 /// Returns block correlation.
 ///
-template <class T, class RandomNumberGenerator>
+template <class T>
 double **
-MeterOverlap<T, RandomNumberGenerator>::
+MeterOverlap<T>::
 getBlockCorrelation() {
     getBlockCovariance();
     for (int i = 0; i < numData; ++i) {
@@ -281,9 +281,9 @@ getBlockCorrelation() {
 
 /// Returns ratio statistics.
 ///
-template <class T, class RandomNumberGenerator>
+template <class T>
 double **
-MeterOverlap<T, RandomNumberGenerator>::
+MeterOverlap<T>::
 getRatioStatistics() {
     if (blockCount == 0) {
         for (int i = 0; i < numData; ++i) {
@@ -312,9 +312,9 @@ getRatioStatistics() {
 
 /// Returns ratio covariance.
 ///
-template <class T, class RandomNumberGenerator>
+template <class T>
 double **
-MeterOverlap<T, RandomNumberGenerator>::
+MeterOverlap<T>::
 getRatioCovariance() {
     if (blockCount<2) {
         for (int i = 0; i < numData; ++i) {
@@ -354,9 +354,9 @@ getRatioCovariance() {
 
 /// Returns ratio correlation.
 ///
-template <class T, class RandomNumberGenerator>
+template <class T>
 double **
-MeterOverlap<T, RandomNumberGenerator>::
+MeterOverlap<T>::
 getRatioCorrelation() {
     if (blockCount<2) {
         for (int i = 0; i < numData; ++i) {
@@ -394,7 +394,7 @@ getRatioCorrelation() {
     return ratioCovariance;
 }
 
-template<class T, class RandomNumberGenerator>
-int MeterOverlap<T, RandomNumberGenerator>::getNumData() {
+template<class T>
+int MeterOverlap<T>::getNumData() {
     return numData;
 }

@@ -28,7 +28,7 @@ template <class T,
 class VirialProduction {
 protected:
     IntegratorMSMC<T, RandomNumberGenerator> & refIntegrator, & targetIntegrator;
-    MeterOverlap<T, RandomNumberGenerator> refMeter, targetMeter;
+    MeterOverlap<T> refMeter, targetMeter;
     double idealTargetFraction;
     double **refStats, **refBCStats, **refRatioStats;
     double **targetStats, **targetBCStats, **targetRatioStats;
@@ -41,10 +41,10 @@ protected:
 public:
     VirialProduction(IntegratorMSMC<T, RandomNumberGenerator> &refIntegrator,
                      IntegratorMSMC<T, RandomNumberGenerator> &targetIntegrator,
-                     ClusterSum<T, RandomNumberGenerator> &refClusterRef,
-                     ClusterSum<T, RandomNumberGenerator> &refClusterTarget,
-                     ClusterSum<T, RandomNumberGenerator> &targetClusterRef,
-                     ClusterSum<T, RandomNumberGenerator> &targetClusterTarget,
+                     ClusterSum<T> &refClusterRef,
+                     ClusterSum<T> &refClusterTarget,
+                     ClusterSum<T> &targetClusterRef,
+                     ClusterSum<T> &targetClusterTarget,
                      double alpha, double refIntegral);
     ~VirialProduction();
     void analyze();
@@ -60,8 +60,8 @@ public:
     double** getRefRatioStats();
     double** getTargetRatioStats();
     double** getFullBCStats();
-    MeterOverlap<T, RandomNumberGenerator> getRefMeter();
-    MeterOverlap<T, RandomNumberGenerator> getTargetMeter();
+    MeterOverlap<T> * getRefMeter();
+    MeterOverlap<T> * getTargetMeter();
 };
 
 #endif //VIRIAL_PRODUCTION_H

@@ -20,31 +20,26 @@
 
 /// Computes cluster sum.
 ///
-template <class T,
-        class RandomNumberGenerator>
-class IntegratorMSMC;
 
-template <class T,
-        class RandomNumberGenerator>
+template <class T>
 class ClusterSum {
  public:
-    ClusterSum(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, OverlapTester<T> const * overlapTester);
+    ClusterSum(std::vector<Particle<T> *> * particles, OverlapTester<T> const * overlapTester);
     virtual ~ClusterSum();
     virtual double value() = 0;
 
  protected:
-    IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC;
+    std::vector<Particle<T> *> * particles;
     OverlapTester<T> const * overlapTester;
 };
 
 ///Sub class of ClusterSum to compute cluster sum for chains.
 ///
 
-template <class T,
-        class RandomNumberGenerator>
-class ClusterSumChain : public ClusterSum<T, RandomNumberGenerator> {
+template <class T>
+class ClusterSumChain : public ClusterSum<T> {
 public:
-    ClusterSumChain(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, double diameter, double ringFac, double chainFac);
+    ClusterSumChain(std::vector<Particle<T> *> * particles, double diameter, double ringFac, double chainFac);
     ~ClusterSumChain();
     double value();
 
@@ -56,11 +51,10 @@ private:
 
 ///Sub class of ClusterSum to compute cluster sum using Wheatley Recursion.
 ///
-template <class T,
-        class RandomNumberGenerator>
-class ClusterSumWheatleyRecursion : public ClusterSum<T, RandomNumberGenerator>{
+template <class T>
+class ClusterSumWheatleyRecursion : public ClusterSum<T>{
 public:
-    ClusterSumWheatleyRecursion(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, OverlapTester<T> const * overlapTester);
+    ClusterSumWheatleyRecursion(std::vector<Particle<T> *> * particles, OverlapTester<T> const * overlapTester);
     ~ClusterSumWheatleyRecursion();
     double value();
 

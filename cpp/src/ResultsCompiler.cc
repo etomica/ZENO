@@ -47,6 +47,7 @@
 #include <thread>
 
 #include "ResultsCompiler.h"
+#include "ResultsVirial.h"
 
 // ================================================================
 
@@ -76,12 +77,15 @@ ResultsCompiler(Parameters const & parameters)
     sedimentationCoefficient(),
     gyrationTensor(),
     gyrationEigenvalues(),
+    virialCoefficient(),
     intrinsicViscosityConventionalComputed(false),
     frictionCoefficientComputed(false),
     diffusionCoefficientComputed(false),
     sedimentationCoefficientComputed(false),
+    virialCoefficientComputed(false),
     resultsZenoCompiled(false), 
-    resultsInteriorCompiled(false) {
+    resultsInteriorCompiled(false),
+    resultsVirialCompiled(false){
 
 }
 
@@ -98,6 +102,7 @@ ResultsCompiler::
 void 
 ResultsCompiler::compile(ResultsZeno const * resultsZeno,
 			 ResultsInterior const * resultsInterior,
+			 ResultsVirial const * resultsVirial,
 			 Sphere<double> const & boundingSphere) {
 
   boundingSphereRadius = boundingSphere.getRadius();
@@ -235,6 +240,15 @@ ResultsCompiler::compile(ResultsZeno const * resultsZeno,
     gyrationTensor.getEigenValues(gyrationEigenvalues);
 
     resultsInteriorCompiled = true;
+  }
+
+  if (resultsVirial != NULL) {
+      virialCoefficient = computeVirialCoefficient(resultsVirial->getRefAverageReduced(),
+                                                   resultsVirial->getRefOverlapAverageReduced(),
+                                                   resultsVirial->getTargetAverageReduced(),
+                                                   resultsVirial->getTargetOverlapAverageReduced(),
+                                                   resultsVirial->getRefIntegral());
+      resultsVirialCompiled = true;
   }
 
   if (resultsZeno != NULL &&
@@ -591,6 +605,18 @@ computeGyrationTensor(Matrix3x3<Uncertain<double> > const & hitPointsSqrSum,
   return gyrationTensor;
 }
 
+Uncertain<double>
+ResultsCompiler::
+computeVirialCoefficient(Uncertain<double> refAverage,
+                         Uncertain<double> refOverlapAverage,
+                         Uncertain<double> targetAverage,
+                         Uncertain<double> targetOverlapAverage,
+                         double refIntegral) const {
+    std::cout<<refIntegral<<"\t"<<refAverage<<"\t"<<targetAverage<<"\t"<<refOverlapAverage<<"\t"<<targetOverlapAverage<<std::endl;
+    return refIntegral*(targetAverage/refAverage)/(targetOverlapAverage/refOverlapAverage);
+
+}
+
 /// Inverts the formula: 
 /// index = (j*j + j)/2 + i
 ///
@@ -733,6 +759,13 @@ print(bool printCounts,
 		 csvOutputFile);
   }
 
+  if(resultsVirialCompiled){
+      printScalar("Virial Coefficient",
+                  "virial_coefficient",
+                  "1",
+                  virialCoefficient,
+                  csvOutputFile);
+  }
   if (resultsZenoCompiled && resultsInteriorCompiled) {
 
     printScalar("Intrinsic conductivity",

@@ -22,13 +22,13 @@ template <class T,
 VirialAlpha<T, RandomNumberGenerator>::
 VirialAlpha(IntegratorMSMC<T, RandomNumberGenerator> & rIntegrator,
             IntegratorMSMC<T, RandomNumberGenerator> & tIntegrator,
-            ClusterSum<T, RandomNumberGenerator> & refClusterRef,
-            ClusterSum<T, RandomNumberGenerator> & refClusterTarget,
-            ClusterSum<T, RandomNumberGenerator> & targetClusterRef,
-            ClusterSum<T, RandomNumberGenerator> & targetClusterTarget) :
+            ClusterSum<T> & refClusterRef,
+            ClusterSum<T> & refClusterTarget,
+            ClusterSum<T> & targetClusterRef,
+            ClusterSum<T> & targetClusterTarget) :
             stepCount(0), nextCheck(1000), refIntegrator(rIntegrator), targetIntegrator(tIntegrator),
-            refMeter(MeterOverlap<T, RandomNumberGenerator>(refClusterRef, refClusterTarget, 1, 5, 10)),
-            targetMeter(MeterOverlap<T, RandomNumberGenerator>(targetClusterTarget, targetClusterRef, 1, -5, 10)),
+            refMeter(MeterOverlap<T>(refClusterRef, refClusterTarget, 1, 5, 10)),
+            targetMeter(MeterOverlap<T>(targetClusterTarget, targetClusterRef, 1, -5, 10)),
             newAlpha(0), newAlphaErr(0), alphaCor(0), alphaSpan(0), allDone(false),
             verbose(false) {
     int numAlpha = refMeter.getNumAlpha();
@@ -77,8 +77,7 @@ analyze(double &jBest) {
     double **refOverStats = refMeter.getStatistics();
     double **targetOverStats = targetMeter.getStatistics();
     for (int j=0; j<numAlpha; j++) {
-        lnRatio[j] = log(refOverStats[j][MeterOverlap<T, RandomNumberGenerator>::AVG_AVG]/targetOverStats[j][MeterOverlap<T, RandomNumberGenerator>::AVG_AVG]);
-        printf("J:%d alpha  avg: %22.15e   lnRatio: %12.5e\n", j, alpha[j], lnRatio[j]);
+        lnRatio[j] = log(refOverStats[j][MeterOverlap<T>::AVG_AVG]/targetOverStats[j][MeterOverlap<T>::AVG_AVG]);
         if (j>0 && lnRatio[j]*lnRatio[j-1] <= 0) {
             // linear interpolation on log scale
             double xj = lnRatio[j-1]/(lnRatio[j-1]-lnRatio[j]);
@@ -86,15 +85,14 @@ analyze(double &jBest) {
             newAlpha = exp(log(alpha[j-1]) + xj*(log(alpha[j]/alpha[j-1])));
 
             double ratio1 = exp(lnRatio[j-1]);
-            double err1 = MeterOverlap<T, RandomNumberGenerator>::ratioErr(refOverStats[j-1][MeterOverlap<T, RandomNumberGenerator>::AVG_AVG], refOverStats[j-1][MeterOverlap<T, RandomNumberGenerator>::AVG_ERR],
-                                                 targetOverStats[j-1][MeterOverlap<T, RandomNumberGenerator>::AVG_AVG], targetOverStats[j-1][MeterOverlap<T, RandomNumberGenerator>::AVG_ERR], 0);
+            double err1 = MeterOverlap<T>::ratioErr(refOverStats[j-1][MeterOverlap<T>::AVG_AVG], refOverStats[j-1][MeterOverlap<T>::AVG_ERR],
+                                                 targetOverStats[j-1][MeterOverlap<T>::AVG_AVG], targetOverStats[j-1][MeterOverlap<T>::AVG_ERR], 0);
             double ratio2 = exp(lnRatio[j]);
-            double err2 = MeterOverlap<T, RandomNumberGenerator>::ratioErr(refOverStats[j][MeterOverlap<T, RandomNumberGenerator>::AVG_AVG], refOverStats[j][MeterOverlap<T, RandomNumberGenerator>::AVG_ERR],
-                                                 targetOverStats[j][MeterOverlap<T, RandomNumberGenerator>::AVG_AVG], targetOverStats[j][MeterOverlap<T, RandomNumberGenerator>::AVG_ERR], 0);
+            double err2 = MeterOverlap<T>::ratioErr(refOverStats[j][MeterOverlap<T>::AVG_AVG], refOverStats[j][MeterOverlap<T>::AVG_ERR],
+                                                 targetOverStats[j][MeterOverlap<T>::AVG_AVG], targetOverStats[j][MeterOverlap<T>::AVG_ERR], 0);
             newAlphaErr = (err1/ratio1 > err2/ratio2 ? err1/ratio1 : err2/ratio2)*newAlpha;
-            printf("alpha  avg: %22.15e   newAlpha: %12.5e \n", newAlpha, newAlphaErr);
-            double ac1 = targetOverStats[j-1][MeterOverlap<T, RandomNumberGenerator>::AVG_ACOR];
-            double ac2 = targetOverStats[j][MeterOverlap<T, RandomNumberGenerator>::AVG_ACOR];
+            double ac1 = targetOverStats[j-1][MeterOverlap<T>::AVG_ACOR];
+            double ac2 = targetOverStats[j][MeterOverlap<T>::AVG_ACOR];
             alphaCor = ac1 > ac2 ? ac1 : ac2;
             return;
         }
@@ -102,10 +100,8 @@ analyze(double &jBest) {
     int jb = (fabs(lnRatio[0]) < fabs(lnRatio[numAlpha-1])) ? 0 : numAlpha-1;
     jBest = jb;
     newAlpha = alpha[jb];
-    newAlphaErr = MeterOverlap<T, RandomNumberGenerator>::ratioErr(refOverStats[jb][MeterOverlap<T, RandomNumberGenerator>::AVG_AVG], refOverStats[jb][MeterOverlap<T, RandomNumberGenerator>::AVG_ERR],
-                                         targetOverStats[jb][MeterOverlap<T, RandomNumberGenerator>::AVG_AVG], targetOverStats[jb][MeterOverlap<T, RandomNumberGenerator>::AVG_ERR], 0);
-
-    printf("alpha  avg: %22.15e   newAlpha: %12.5e \n", newAlpha, newAlphaErr);
+    newAlphaErr = MeterOverlap<T>::ratioErr(refOverStats[jb][MeterOverlap<T>::AVG_AVG], refOverStats[jb][MeterOverlap<T>::AVG_ERR],
+                                         targetOverStats[jb][MeterOverlap<T>::AVG_AVG], targetOverStats[jb][MeterOverlap<T>::AVG_ERR], 0);
 }
 
 template <class T,

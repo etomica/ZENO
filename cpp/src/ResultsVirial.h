@@ -24,21 +24,25 @@
 /// Collects results from the virial coefficient computation.
 ///
 
-template <class T,
-        class RandomNumberGenerator>
 class ResultsVirial{
 public:
-    ResultsVirial(int numThreads);
+    ResultsVirial(int numThreads, double refIntegral);
 
     ~ResultsVirial();
 
     void putData(int threadNum,
-                 MeterOverlap<T, RandomNumberGenerator> refMeter,
-                 MeterOverlap<T, RandomNumberGenerator> targetMeter);
+                 MeterOverlap<double> * refMeter,
+                 MeterOverlap<double> * targetMeter);
 
     void reduce();
 
     long long getNumSteps() const;
+    double getRefFrac() const;
+    Uncertain<double> getRefAverageReduced() const;
+    Uncertain<double> getRefOverlapAverageReduced() const;
+    Uncertain<double> getTargetAverageReduced() const;
+    Uncertain<double> getTargetOverlapAverageReduced() const;
+    double getRefIntegral() const;
 
 private:
     Uncertain<double> * refAverage;
@@ -51,6 +55,11 @@ private:
     Uncertain<double> targetOverlapAverageReduced;
     int numThreads;
     bool reduced;
+    long long * refNumSteps;
+    long long * targetNumSteps;
+    long long refNumStepsReduced;
+    long long targetNumStepsReduced;
+    const double refIntegral;
 };
 
 

@@ -24,7 +24,6 @@
 #include "../Geometry/MixedModel.h"
 #include "OverlapTester.h"
 #include "MCMove.h"
-#include "ClusterSum.h"
 #include "MeterOverlap.h"
 #include "Particle.h"
 #include "RandomUtilities.h"
@@ -51,7 +50,7 @@ class IntegratorMSMC {
   RandomNumberGenerator * getRandomNumberGenerator();
   RandomUtilities<T, RandomNumberGenerator> * getRandomUtilities();
   void addMove(MCMove<T, RandomNumberGenerator> * mcMove, double moveProb);
-  void setMeter(MeterOverlap<T, RandomNumberGenerator> * meter);
+  void setMeter(MeterOverlap<T> * meter);
 private:
   Parameters const * parameters;
   int threadNum;
@@ -63,7 +62,7 @@ private:
   std::vector<MCMove<T, RandomNumberGenerator> *> mcMoves;
   std::vector<double> moveProbs;
   RandomUtilities<T, RandomNumberGenerator> randomUtilities;
-  MeterOverlap<T, RandomNumberGenerator> * meterOverlap;
+  MeterOverlap<T> * meterOverlap;
 };
 
 #endif

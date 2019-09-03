@@ -48,6 +48,7 @@
 
 #include "ResultsZeno.h"
 #include "ResultsInterior.h"
+#include "ResultsVirial.h"
 #include "Uncertain.h"
 #include "Parameters.h"
 
@@ -68,6 +69,7 @@ public:
 
   void compile(ResultsZeno const * resultsZeno,
 	       ResultsInterior const * resultsInterior,
+	       ResultsVirial const * resultsVirial,
 	       Sphere<double> const & boundingSphere);
 
   void print(bool printCounts,
@@ -78,6 +80,8 @@ public:
   Uncertain<double> getMeanPolarizability() const;
 
   Uncertain<double> getVolume() const;
+
+  Uncertain<double> getVirialCoefficient() const;
 
 private:
   using BigUInt = uint_fast64_t;
@@ -160,6 +164,13 @@ private:
 			Vector3<Uncertain<double> > const & hitPointsSum,
 			Uncertain<double> const & numInteriorHits) const;
 
+  Uncertain<double>
+  computeVirialCoefficient(Uncertain<double> refAverage,
+                           Uncertain<double> refOverlapAverage,
+                           Uncertain<double> targetAverage,
+                           Uncertain<double> targetOverlapAverage,
+                           double refIntegral) const;
+
   void indexToIJ(BigUInt index, BigUInt * i, BigUInt * j) const;
 
   void printScalar(std::string const & prettyName,
@@ -209,14 +220,17 @@ private:
   Uncertain<double> sedimentationCoefficient;
   Matrix3x3<Uncertain<double> > gyrationTensor;
   Vector3<Uncertain<double> > gyrationEigenvalues;
+  Uncertain<double> virialCoefficient;
 
   bool intrinsicViscosityConventionalComputed;
   bool frictionCoefficientComputed;
   bool diffusionCoefficientComputed;
   bool sedimentationCoefficientComputed;
+  bool virialCoefficientComputed;
 
   bool resultsZenoCompiled;
   bool resultsInteriorCompiled;
+  bool resultsVirialCompiled;
 };
 
 // ================================================================
