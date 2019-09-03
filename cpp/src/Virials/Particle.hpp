@@ -81,7 +81,7 @@ rotateBy(Vector3<T> axis, T angle){
 template <class T>
 const Vector3<T>
 Particle<T>::
-setFromSpherePosition( int index) const {
+getSpherePosition( int index) const {
     Vector3<T> position = model.getSpheres() -> at(index).getCenter();
     orientation.transform(position);
     position += center;
@@ -106,3 +106,12 @@ getBoundingSphere(){
     return &boundingSphere;
 }
 
+template <class T>
+const Vector3<T>
+Particle<T>::
+getBoundingSpherePosition() const {
+    Vector3<T> position = boundingSphere.getCenter();
+    orientation.transform(position);
+    position += center;
+    return position;
+}

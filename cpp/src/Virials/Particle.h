@@ -37,7 +37,8 @@ class Particle {
   void setCenter(Vector3<T> v);
   void translateBy(Vector3<T> step);
   void rotateBy(Vector3<T> axis, T angle);
-  const Vector3<T> setFromSpherePosition(int index) const;
+  const Vector3<T> getSpherePosition(int index) const;
+  const Vector3<T> getBoundingSpherePosition() const;
   MixedModel<T> const * getModel();
   Sphere<T> const * getBoundingSphere();
 

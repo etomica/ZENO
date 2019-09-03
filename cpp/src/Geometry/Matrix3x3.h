@@ -106,9 +106,9 @@ class Matrix3x3
   Matrix3x3<eleT> & operator*=(eleT b);
   Matrix3x3<eleT> & operator/=(eleT b);
 
-  void transform(Matrix3x3<eleT> A) const ;
-  void transform(Vector3<eleT> A) const;
-  void setAxisAngle(Vector3<eleT> axis, eleT theta);
+  void transform(Matrix3x3<eleT> & A) const ;
+  void transform(Vector3<eleT> & A) const;
+  void setAxisAngle(const Vector3<eleT> & axis, const eleT theta);
 
   template <class otherEleT>
   Matrix3x3<eleT> & operator=(const Matrix3x3<otherEleT> & rhs);
@@ -581,7 +581,7 @@ Matrix3x3<eleT> & Matrix3x3<eleT>::operator=(const Matrix3x3<otherEleT> & rhs)
 template <class eleT>
 void
 Matrix3x3<eleT>::
-transform(Matrix3x3<eleT> A) const {
+transform(Matrix3x3<eleT> & A) const {
     for(int i = 0; i < 3; ++i)
     {
         eleT X = 0;
@@ -605,7 +605,7 @@ transform(Matrix3x3<eleT> A) const {
 template <class eleT>
 void
 Matrix3x3<eleT>::
-transform(Vector3<eleT> A) const {
+transform(Vector3<eleT> & A) const {
     for(int i = 0; i < 3; ++i)
     {
         eleT X = 0;
@@ -628,7 +628,7 @@ transform(Vector3<eleT> A) const {
 template <class eleT>
 void
 Matrix3x3<eleT>::
-setAxisAngle(Vector3<eleT> axis, eleT theta) {
+setAxisAngle(const Vector3<eleT> & axis, const eleT theta) {
     double st = sin(theta);
     double ct = cos(theta);
     double vx = axis.get(0);

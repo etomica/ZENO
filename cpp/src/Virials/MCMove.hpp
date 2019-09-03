@@ -15,7 +15,7 @@
 
 #include "MCMove.h"
 
-/// Constructs the class to perform a monte carlo trail.
+/// Constructs the class to perform a monte carlo trial.
 ///
 
 template <class T,
@@ -42,7 +42,7 @@ MCMove<T, RandomNumberGenerator>::
   ~MCMove() {
 }
 
-/// Constructs a sub class of MCMove to perform a monte carlo trail for translation.
+/// Constructs a sub class of MCMove to perform a monte carlo trial for translation.
 ///
 template <class T, 
         class RandomNumberGenerator>
@@ -96,7 +96,7 @@ doTrial(){
     }
 }
 
-/// Constructs a sub class of MCMove to perform a monte carlo trail for rotation.
+/// Constructs a sub class of MCMove to perform a monte carlo trial for rotation.
 ///
 template <class T,
         class RandomNumberGenerator>
@@ -112,7 +112,7 @@ MCMoveRotate<T, RandomNumberGenerator>::
 ~MCMoveRotate() {
 }
 
-/// Perform a monte carlo trail for rotation.
+/// Perform a monte carlo trial for rotation.
 ///
 template <class T, class RandomNumberGenerator>
 void MCMoveRotate<T, RandomNumberGenerator>::
@@ -128,31 +128,31 @@ doTrial(){
         std::cerr << "Old Value is zero " << std::endl;
         exit(1);
     }
-    std::vector<Vector3<T>> axis(MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size() - 1);
-    std::vector<double> angle(MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size() - 1);
-    for(unsigned int j = 0; j < (MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size() - 1); ++j)
+    std::vector<Vector3<T>> axis(MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size());
+    std::vector<double> angle(MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size());
+    for(unsigned int j = 0; j < (MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size()); ++j)
     {
         angle[j] =  (MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomNumberGenerator()->getRandIn01() - 0.5) * MCMove<T, RandomNumberGenerator>::stepSize;
         MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomUtilities()->setRandomOnSphere(&axis[j]);
-        MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j+1)->rotateBy(axis[j], angle[j]);
+        MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j)->rotateBy(axis[j], angle[j]);
     }
     double newValue = 1.0;
     if(MCMove<T, RandomNumberGenerator>::clusterSum != NULL) {
-        MCMove<T, RandomNumberGenerator>::clusterSum->value();
+        newValue = MCMove<T, RandomNumberGenerator>::clusterSum->value();
     }
     double ratio = newValue / oldValue;
     ratio = fabs(ratio);
 
     if((ratio < 1) && (ratio < MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomNumberGenerator()->getRandIn01()))
     {
-        for(unsigned int j = 0; j < (MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size() - 1); ++j)
+        for(unsigned int j = 0; j < (MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size()); ++j)
         {
-            MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j+1)->rotateBy(axis[j], -angle[j]);
+            MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j)->rotateBy(axis[j], -angle[j]);
         }
     }
 }
 
-/// Constructs a sub class of MCMove to perform a monte carlo trail for chain move.
+/// Constructs a sub class of MCMove to perform a monte carlo trial for chain move.
 ///
 template <class T, class RandomNumberGenerator>
 MCMoveChainVirial<T, RandomNumberGenerator>::

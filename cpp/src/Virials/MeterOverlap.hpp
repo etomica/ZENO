@@ -113,6 +113,7 @@ collectData() {
     double pi = fabs(primaryValue);
     if (pi == 0 || pi == std::numeric_limits<double>::infinity() || std::isnan(pi)) {
         std::cerr << "pi is" << pi << std::endl;
+        clusterSumPrimary.value();
         exit(1);
     }
     double perturbValue = fabs(clusterSumPerturb.value());
