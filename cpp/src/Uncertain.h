@@ -128,6 +128,8 @@ public:
   static Matrix3x3<Uncertain<T> > zip(Matrix3x3<T> const & mean,
 				      Matrix3x3<T> const & variance);
 
+  static void setCovariance(Uncertain<T> const & A, Uncertain<T> const & B, double);
+
 private:
   static T firstOrderVariance(T varA, T df_dA);
 
@@ -1291,6 +1293,10 @@ inline Uncertain<T> operator/(const T & lhs, const Uncertain<T> & rhs)
   return uncertainLHS;
 }
 
+template <class T>
+void Uncertain<T>::setCovariance(Uncertain<T> const & A, Uncertain<T> const & B, double covariance){
+    Uncertain<T>::covarianceMatrix.setCovariance(A.id, B.id, covariance);
+}
 // ================================================================
 
 #endif  // #ifndef UNCERTAIN_H_
