@@ -63,12 +63,11 @@ MCMoveTranslate<T, RandomNumberGenerator>::
 ///
 template <class T,
         class RandomNumberGenerator>
-void MCMoveTranslate<T, RandomNumberGenerator>::
-doTrial(){
+double MCMoveTranslate<T, RandomNumberGenerator>::
+doTrial(double oldValue){
     if (MCMove<T, RandomNumberGenerator>::tunable && MCMove<T, RandomNumberGenerator>::numTrials >= MCMove<T, RandomNumberGenerator>::adjustInterval) {
         MCMove<T, RandomNumberGenerator>::adjustStepSize();
     }
-    double oldValue = MCMove<T, RandomNumberGenerator>::clusterSum->value();
     if(oldValue == 0){
         std::cerr << "Old Value is zero " << std::endl;
         exit(1);
@@ -93,7 +92,9 @@ doTrial(){
             step[j] *= -1;
             MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j+1)->translateBy(step[j]);
         }
+        newValue = oldValue;
     }
+    return newValue;
 }
 
 /// Constructs a sub class of MCMove to perform a monte carlo trial for rotation.
@@ -115,14 +116,10 @@ MCMoveRotate<T, RandomNumberGenerator>::
 /// Perform a monte carlo trial for rotation.
 ///
 template <class T, class RandomNumberGenerator>
-void MCMoveRotate<T, RandomNumberGenerator>::
-doTrial(){
+double MCMoveRotate<T, RandomNumberGenerator>::
+doTrial(double oldValue){
     if (MCMove<T, RandomNumberGenerator>::tunable && MCMove<T, RandomNumberGenerator>::numTrials >= MCMove<T, RandomNumberGenerator>::adjustInterval) {
         MCMove<T, RandomNumberGenerator>::adjustStepSize();
-    }
-    double oldValue = 1.0;
-    if(MCMove<T, RandomNumberGenerator>::clusterSum != NULL){
-        oldValue = MCMove<T, RandomNumberGenerator>::clusterSum->value();
     }
     if(oldValue == 0){
         std::cerr << "Old Value is zero " << std::endl;
@@ -136,7 +133,7 @@ doTrial(){
         MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomUtilities()->setRandomOnSphere(&axis[j]);
         MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j)->rotateBy(axis[j], angle[j]);
     }
-    double newValue = 1.0;
+    double newValue = oldValue;
     if(MCMove<T, RandomNumberGenerator>::clusterSum != NULL) {
         newValue = MCMove<T, RandomNumberGenerator>::clusterSum->value();
     }
@@ -149,7 +146,9 @@ doTrial(){
         {
             MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j)->rotateBy(axis[j], -angle[j]);
         }
+        newValue = oldValue;
     }
+    return newValue;
 }
 
 /// Constructs a sub class of MCMove to perform a monte carlo trial for chain move.
@@ -168,8 +167,8 @@ MCMoveChainVirial<T, RandomNumberGenerator>::
 /// Perform a monte carlo trial for chain move.
 ///
 template <class T, class RandomNumberGenerator>
-void MCMoveChainVirial<T, RandomNumberGenerator>::
-doTrial() {
+double MCMoveChainVirial<T, RandomNumberGenerator>::
+doTrial(double oldValue) {
     const Vector3<T> rPrev = MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(0)->getCenter();
     Vector3<T> sPrev = rPrev;
     for(unsigned int j = 1; j < MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size(); ++j)
@@ -180,6 +179,7 @@ doTrial() {
         MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j)->setCenter(s);
          sPrev = s;
     }
+    return MCMove<T, RandomNumberGenerator>::clusterSum->value();
 }
 
 /// Adjusts step size.

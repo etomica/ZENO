@@ -21,10 +21,9 @@
 
 template <class T>
 MeterOverlap<T>::
-MeterOverlap(ClusterSum<T> & clusterSumPrimary,
-             ClusterSum<T> & clusterSumPerturb,
+MeterOverlap(ClusterSum<T> & clusterSumPerturb,
              double alphaCenter, double alphaSpan, int numAlpha) :
-             clusterSumPrimary(clusterSumPrimary), clusterSumPerturb(clusterSumPerturb),
+             clusterSumPerturb(clusterSumPerturb),
              data(NULL), numAlpha(numAlpha), mostRecent(NULL), currentBlockSum(NULL), blockSum(NULL),
              blockSum2(NULL), correlationSum(NULL),prevBlockSum(NULL), firstBlockSum(NULL),
              stats(NULL), blockSums(NULL), blockCovariance(NULL), blockCovSum(NULL),
@@ -99,12 +98,10 @@ getNumAlpha() {
 template <class T>
 void
 MeterOverlap<T>::
-collectData() {
-    const double primaryValue = clusterSumPrimary.value();
+collectData(double primaryValue) {
     double pi = fabs(primaryValue);
     if (pi == 0 || pi == std::numeric_limits<double>::infinity() || std::isnan(pi)) {
         std::cerr << "pi is" << pi << std::endl;
-        clusterSumPrimary.value();
         exit(1);
     }
     double perturbValue = fabs(clusterSumPerturb.value());

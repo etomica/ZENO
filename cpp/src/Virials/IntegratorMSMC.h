@@ -51,6 +51,7 @@ class IntegratorMSMC {
   RandomUtilities<T, RandomNumberGenerator> * getRandomUtilities();
   void addMove(MCMove<T, RandomNumberGenerator> * mcMove, double moveProb);
   void setMeter(MeterOverlap<T> * meter);
+  void setCurrentValue(double currentValue);
 private:
   Parameters const * parameters;
   int threadNum;
@@ -63,6 +64,7 @@ private:
   std::vector<double> moveProbs;
   RandomUtilities<T, RandomNumberGenerator> randomUtilities;
   MeterOverlap<T> * meterOverlap;
+  double currentValue;
 };
 
 #endif

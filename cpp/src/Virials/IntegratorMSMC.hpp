@@ -35,7 +35,7 @@ IntegratorMSMC(Parameters const * parameters,
               totalTimer(totalTimer),
               randomNumberGenerator(randomNumberGenerator),
               boundingSpheres(boundingSpheres),
-              numParticles(numParticles), randomUtilities(randomNumberGenerator){
+              numParticles(numParticles), randomUtilities(randomNumberGenerator), currentValue(0){
     for(unsigned int i = 0; i < numParticles.size(); ++i)
     {
         for (int j =0; j < numParticles[i]; ++j)
@@ -73,11 +73,11 @@ doStep(long long numSteps){
             cumProb += moveProbs[i];
             if(random < cumProb)
             {
-                mcMoves[i]->doTrial();
+                currentValue = mcMoves[i]->doTrial(currentValue);
                 break;
             }
         }
-        meterOverlap->collectData();
+        meterOverlap->collectData(currentValue);
     }
 }
 
@@ -131,4 +131,14 @@ void
 IntegratorMSMC<T, RandomNumberGenerator>::
 setMeter(MeterOverlap<T> * meter) {
     meterOverlap = meter;
+}
+
+/// Adds current cluster value.
+///
+template <class T,
+        class RandomNumberGenerator>
+void
+IntegratorMSMC<T, RandomNumberGenerator>::
+setCurrentValue(double currentValue) {
+    this->currentValue = currentValue;
 }

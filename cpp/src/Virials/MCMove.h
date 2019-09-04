@@ -29,10 +29,10 @@ template <class T,
 class MCMove {
  public:
     MCMove(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T> * clusterSum);
-  virtual ~MCMove();
-  virtual void doTrial() = 0;
-  double getStepSize();
-  void setStepSize(double sS);
+    virtual ~MCMove();
+    virtual double doTrial(double oldValue) = 0;
+    double getStepSize();
+    void setStepSize(double sS);
 
 protected:
     IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC;
@@ -55,9 +55,10 @@ template <class T,
         class RandomNumberGenerator>
 class MCMoveTranslate : public MCMove<T, RandomNumberGenerator> {
 public:
-      MCMoveTranslate(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T> * clusterSum);
-      ~MCMoveTranslate();
-      void doTrial();
+    MCMoveTranslate(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T> * clusterSum);
+    ~MCMoveTranslate();
+
+    double doTrial(double oldValue);
  };
 
 /// Sub class of MCMove to perform a monte carlo trial for rotation.
@@ -68,7 +69,8 @@ class MCMoveRotate : public MCMove<T, RandomNumberGenerator> {
 public:
     MCMoveRotate(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T> * clusterSum);
     ~MCMoveRotate();
-    void doTrial();
+
+    double doTrial(double oldValue);
 };
 
 /// Sub class of MCMove to perform a monte carlo trial for chain move.
@@ -79,7 +81,8 @@ class MCMoveChainVirial : public MCMove<T, RandomNumberGenerator> {
 public:
     MCMoveChainVirial(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T> * clusterSum, double sigma);
     ~MCMoveChainVirial();
-    void doTrial();
+
+    double doTrial(double oldValue);
 protected:
     double sigma;
 };

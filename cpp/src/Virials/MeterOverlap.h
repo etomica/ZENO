@@ -26,12 +26,12 @@ class ClusterSum;
 template <class T>
 class MeterOverlap {
  public:
-    MeterOverlap(ClusterSum<T> & clusterSumPrimary, ClusterSum<T> & clusterSumPerturb, double alphaCenter, double alphaSpan, int numAlpha);
+    MeterOverlap(ClusterSum<T> & clusterSumPerturb, double alphaCenter, double alphaSpan, int numAlpha);
     ~MeterOverlap();
     void setAlpha(double alphaCenter, double alphaSpan);
     int getNumAlpha();
     const double * getAlpha(){return alpha;}
-    void collectData();
+    void collectData(double primaryValue);
     double ** getStatistics() {
         if (blockCount == 0) {
             for (int i = 0; i < numData; ++i) {
@@ -125,7 +125,6 @@ class MeterOverlap {
         return ((vi / vd) / eid) * ((vj / vd) / ejd) * ((ed / vd) * (ed / vd) + (ei / vi) * (ej / vj) * cij - (ei / vi) * (ed / vd) * cid - (ej / vj) * (ed / vd) * cjd);
     }
 private:
-    ClusterSum<T> & clusterSumPrimary;
     ClusterSum<T> & clusterSumPerturb;
     double * data;
     double * alpha;

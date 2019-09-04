@@ -1358,6 +1358,7 @@ doVirialSamplingThread(Parameters const * parameters,
     MCMoveRotate<double , RandomNumberGenerator> mcMoveRotateRef(refIntegrator, &clusterSumRef);
     refIntegrator.addMove(&mcMoveChain, 1.0);
     refIntegrator.addMove(&mcMoveRotateRef, 1.0);
+    refIntegrator.setCurrentValue(clusterSumRef.value());
 
     IntegratorMSMC<double, RandomNumberGenerator> targetIntegrator(parameters,
                                                                 threadNum,
@@ -1373,6 +1374,7 @@ doVirialSamplingThread(Parameters const * parameters,
     MCMoveRotate<double , RandomNumberGenerator> mcMoveRotateTarget(targetIntegrator, &clusterSumTargetT);
     targetIntegrator.addMove(&mcMoveTranslate, 1.0);
     targetIntegrator.addMove(&mcMoveRotateTarget, 1.0);
+    targetIntegrator.setCurrentValue(clusterSumTargetT.value());
 
     VirialAlpha<double,RandomNumberGenerator> virialAlpha(refIntegrator, targetIntegrator,
             clusterSumRef, clusterSumTarget, clusterSumRefT, clusterSumTargetT);
