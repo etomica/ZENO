@@ -31,7 +31,7 @@ class MeterOverlap {
     void setAlpha(double alphaCenter, double alphaSpan);
     int getNumAlpha();
     const double * getAlpha(){return alpha;}
-    void collectData(double primaryValue);
+    void collectData(double primaryValue, bool accepted);
     double ** getStatistics() {
         if (blockCount == 0) {
             for (int i = 0; i < numData; ++i) {
@@ -172,6 +172,7 @@ private:
     double ** blockCovSum;
     double ** ratioStats;
     double ** ratioCovariance;
+    double perturbValue;
 };
 #endif
 

@@ -43,8 +43,13 @@ public:
     Uncertain<double> getTargetAverageReduced() const;
     Uncertain<double> getTargetOverlapAverageReduced() const;
     double getRefIntegral() const;
+    void putVirialCoefficient(int threadNum,
+                              double coefficient,
+                              double uncertainty);
+    Uncertain<double> getVirialCoefficientReduced() const;
 
-private:
+
+        private:
     Uncertain<double> * refAverage;
     Uncertain<double> * refOverlapAverage;
     Uncertain<double> * targetAverage;
@@ -60,6 +65,8 @@ private:
     long long refNumStepsReduced;
     long long targetNumStepsReduced;
     const double refIntegral;
+    Uncertain<double> * virialCoefficient;
+    Uncertain<double> virialCoefficientReduced;
 };
 
 

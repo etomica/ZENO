@@ -30,7 +30,7 @@ class MCMove {
  public:
     MCMove(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T> * clusterSum);
     virtual ~MCMove();
-    virtual double doTrial(double oldValue) = 0;
+    virtual double doTrial(double oldValue, bool & accepted) = 0;
     double getStepSize();
     void setStepSize(double sS);
 
@@ -58,7 +58,7 @@ public:
     MCMoveTranslate(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T> * clusterSum);
     ~MCMoveTranslate();
 
-    double doTrial(double oldValue);
+    double doTrial(double oldValue, bool & accepted);
  };
 
 /// Sub class of MCMove to perform a monte carlo trial for rotation.
@@ -70,7 +70,7 @@ public:
     MCMoveRotate(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T> * clusterSum);
     ~MCMoveRotate();
 
-    double doTrial(double oldValue);
+    double doTrial(double oldValue, bool & accepted);
 };
 
 /// Sub class of MCMove to perform a monte carlo trial for chain move.
@@ -82,7 +82,7 @@ public:
     MCMoveChainVirial(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T> * clusterSum, double sigma);
     ~MCMoveChainVirial();
 
-    double doTrial(double oldValue);
+    double doTrial(double oldValue, bool & accepted);
 protected:
     double sigma;
 };

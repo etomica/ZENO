@@ -64,7 +64,7 @@ MCMoveTranslate<T, RandomNumberGenerator>::
 template <class T,
         class RandomNumberGenerator>
 double MCMoveTranslate<T, RandomNumberGenerator>::
-doTrial(double oldValue){
+doTrial(double oldValue, bool & accepted){
     if (MCMove<T, RandomNumberGenerator>::tunable && MCMove<T, RandomNumberGenerator>::numTrials >= MCMove<T, RandomNumberGenerator>::adjustInterval) {
         MCMove<T, RandomNumberGenerator>::adjustStepSize();
     }
@@ -84,8 +84,8 @@ doTrial(double oldValue){
     double newValue = MCMove<T, RandomNumberGenerator>::clusterSum->value();
     double ratio = newValue / oldValue;
     ratio = fabs(ratio);
-
-    if((ratio < 1) && (ratio < MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomNumberGenerator()->getRandIn01()))
+    accepted = (ratio > 1) || (ratio > MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomNumberGenerator()->getRandIn01());
+    if(!accepted)
     {
         for(unsigned int j = 0; j < (MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size() - 1); ++j)
         {
@@ -117,7 +117,7 @@ MCMoveRotate<T, RandomNumberGenerator>::
 ///
 template <class T, class RandomNumberGenerator>
 double MCMoveRotate<T, RandomNumberGenerator>::
-doTrial(double oldValue){
+doTrial(double oldValue, bool & accepted){
     if (MCMove<T, RandomNumberGenerator>::tunable && MCMove<T, RandomNumberGenerator>::numTrials >= MCMove<T, RandomNumberGenerator>::adjustInterval) {
         MCMove<T, RandomNumberGenerator>::adjustStepSize();
     }
@@ -140,7 +140,8 @@ doTrial(double oldValue){
     double ratio = newValue / oldValue;
     ratio = fabs(ratio);
 
-    if((ratio < 1) && (ratio < MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomNumberGenerator()->getRandIn01()))
+    accepted = (ratio > 1) || (ratio > MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomNumberGenerator()->getRandIn01());
+    if(!accepted)
     {
         for(unsigned int j = 0; j < (MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size()); ++j)
         {
@@ -168,9 +169,10 @@ MCMoveChainVirial<T, RandomNumberGenerator>::
 ///
 template <class T, class RandomNumberGenerator>
 double MCMoveChainVirial<T, RandomNumberGenerator>::
-doTrial(double oldValue) {
+doTrial(double oldValue, bool & accepted) {
     const Vector3<T> rPrev = MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(0)->getCenter();
     Vector3<T> sPrev = rPrev;
+    accepted = true;
     for(unsigned int j = 1; j < MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size(); ++j)
     {
         Vector3<T> r = MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j)->getCenter();

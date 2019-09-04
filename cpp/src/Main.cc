@@ -1272,14 +1272,14 @@ doVirialSampling(Parameters const & parameters,
     virialTimer.start();
 
     double refDiameter = 2 * boundingSphere.getRadius();
-    std::cout<<"refDiameter: "<<refDiameter<<std::endl;
+    //std::cout<<"refDiameter: "<<refDiameter<<std::endl;
     double refIntegral = pow(4.0*M_PI*refDiameter*refDiameter*refDiameter/3.0,parameters.getVirialCoefficientOrder()-1)/2;
     for (int i=2; i<=parameters.getVirialCoefficientOrder(); i++) refIntegral *= i;
 
     *resultsVirial = new ResultsVirial(parameters.getNumThreads(), refIntegral);
 
     const int numThreads = parameters.getNumThreads();
-    std::cout<<numThreads<<std::endl;
+    //std::cout<<numThreads<<std::endl;
     std::thread * * threads = new std::thread *[numThreads];
 
     for (int threadNum = 0; threadNum < numThreads; threadNum++) {
@@ -1381,17 +1381,18 @@ doVirialSamplingThread(Parameters const * parameters,
     virialAlpha.run();
 
     double* alphaStats = virialAlpha.getAlphaStatistics();
-    printf("alpha: %e  %e\n", alphaStats[0], alphaStats[1]);
+    /*printf("alpha: %e  %e\n", alphaStats[0], alphaStats[1]);
     printf("alpha block correlation: %f\n", alphaStats[2]);
-    printf("alpha span: %f\n", alphaStats[3]);
+    printf("alpha span: %f\n", alphaStats[3]);*/
 
     VirialProduction<double, RandomNumberGenerator> virialProduction(refIntegrator,targetIntegrator,
             clusterSumRef, clusterSumTarget, clusterSumRefT, clusterSumTargetT, alphaStats[0],
             refIntegral);
     virialProduction.runSteps(stepsInThread);
-    virialProduction.printResults(NULL);
+    //virialProduction.printResults(NULL);
 
     resultsVirial->putData(threadNum, virialProduction.getRefMeter(), virialProduction.getTargetMeter());
+    resultsVirial->putVirialCoefficient(threadNum, virialProduction.getFullStats()[0][0], virialProduction.getFullStats()[0][1]);
 }
 
 /// Prints parameters, results, and (optionally) detailed running time

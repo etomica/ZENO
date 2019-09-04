@@ -31,13 +31,16 @@ ResultsVirial::
     targetNumSteps(NULL),
     refNumStepsReduced(0),
     targetNumStepsReduced(0),
-    refIntegral(refIntegral){
+    refIntegral(refIntegral),
+    virialCoefficient(NULL),
+    virialCoefficientReduced(0){
     refAverage = new Uncertain<double>[numThreads];
     refOverlapAverage = new Uncertain<double>[numThreads];
     targetAverage = new Uncertain<double>[numThreads];
     targetOverlapAverage = new Uncertain<double>[numThreads];
     refNumSteps = new long long[numThreads];
     targetNumSteps = new long long[numThreads];
+    virialCoefficient = new Uncertain<double>[numThreads];
 
     for (int threadNum = 0; threadNum < numThreads; threadNum++) {
         refAverage[threadNum] = 0.0;
@@ -46,6 +49,7 @@ ResultsVirial::
         targetOverlapAverage[threadNum] = 0.0;
         refNumSteps[threadNum] = 0;
         targetNumSteps[threadNum] = 0;
+        virialCoefficient[threadNum] = 0;
     }
 }
 
@@ -57,6 +61,7 @@ ResultsVirial::
     delete[] targetOverlapAverage;
     delete[] refNumSteps;
     delete[] targetNumSteps;
+    delete[] virialCoefficient;
 }
 
 void
@@ -95,6 +100,7 @@ reduce() {
     targetOverlapAverageReduced = 0.0;
     refNumStepsReduced = 0;
     targetNumStepsReduced = 0;
+    virialCoefficientReduced = 0;
 
     for (int threadNum = 0; threadNum < numThreads; threadNum++) {
         refAverageReduced += refAverage[threadNum];
@@ -103,6 +109,7 @@ reduce() {
         targetAverageReduced += targetAverage[threadNum];
         targetOverlapAverageReduced += targetOverlapAverage[threadNum];
         targetNumStepsReduced += targetNumSteps[threadNum];
+        virialCoefficientReduced += virialCoefficient[threadNum]/(double)numThreads;
     }
     reduced = true;
 }
@@ -153,4 +160,17 @@ double
 ResultsVirial::
 getRefIntegral() const {
     return refIntegral;
+}
+
+void
+ResultsVirial::
+putVirialCoefficient(int threadNum, double coefficient, double uncertainty){
+    virialCoefficient[threadNum] = Uncertain<double>(coefficient, uncertainty);
+}
+
+Uncertain<double>
+ResultsVirial::
+getVirialCoefficientReduced() const {
+    assert(reduced);
+    return virialCoefficientReduced;
 }

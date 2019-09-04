@@ -243,11 +243,12 @@ ResultsCompiler::compile(ResultsZeno const * resultsZeno,
   }
 
   if (resultsVirial != NULL) {
-      virialCoefficient = computeVirialCoefficient(resultsVirial->getRefAverageReduced(),
+      /*virialCoefficient = computeVirialCoefficient(resultsVirial->getRefAverageReduced(),
                                                    resultsVirial->getRefOverlapAverageReduced(),
                                                    resultsVirial->getTargetAverageReduced(),
                                                    resultsVirial->getTargetOverlapAverageReduced(),
-                                                   resultsVirial->getRefIntegral());
+                                                   resultsVirial->getRefIntegral());*/
+      virialCoefficient = resultsVirial->getVirialCoefficientReduced();
       resultsVirialCompiled = true;
   }
 

@@ -66,6 +66,7 @@ doStep(long long numSteps){
     for(unsigned int i = 0; i < moveProbs.size(); ++i) totalProb += moveProbs[i];
     for(int j = 0; j < numSteps; ++j)
     {
+        bool accepted = false;
         double cumProb = 0.0;
         double random = totalProb * randomNumberGenerator->getRandIn01();
         for(unsigned int i = 0; i < mcMoves.size(); ++i)
@@ -73,11 +74,11 @@ doStep(long long numSteps){
             cumProb += moveProbs[i];
             if(random < cumProb)
             {
-                currentValue = mcMoves[i]->doTrial(currentValue);
+                currentValue = mcMoves[i]->doTrial(currentValue, accepted);
                 break;
             }
         }
-        meterOverlap->collectData(currentValue);
+        meterOverlap->collectData(currentValue, accepted);
     }
 }
 
