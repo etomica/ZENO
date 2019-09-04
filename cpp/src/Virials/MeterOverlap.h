@@ -63,8 +63,39 @@ class MeterOverlap {
         }
         return stats;
     }
-    double ** getBlockCovariance();
-    double ** getBlockCorrelation();
+
+    /// Returns block covariance.
+    ///
+
+    double ** getBlockCovariance(){
+        double totSamples = blockSize*blockCount;
+        double totSq = totSamples*totSamples;
+        for (int i = 0; i < numData; ++i) {
+            for (int j = 0; j <= i; ++j) {
+                blockCovariance[i][j] = blockCovariance[j][i] = blockCovSum[i][j] / blockCount - blockSum[i] * blockSum[j] / totSq;
+            }
+        }
+
+        return blockCovariance;
+    }
+
+    /// Returns block correlation.
+    ///
+    double ** getBlockCorrelation(){
+        getBlockCovariance();
+        for (int i = 0; i < numData; ++i) {
+            for (int j = 0; j < i; ++j) {
+                double d = blockCovariance[i][i] * blockCovariance[j][j];
+                double c = d <= 0 ? 0 : blockCovariance[i][j] / sqrt(d);
+                blockCovariance[i][j] = blockCovariance[j][i] = c;
+            }
+        }
+        for (int i = 0; i < numData; ++i) {
+            blockCovariance[i][i] = 1;
+        }
+        return blockCovariance;
+    }
+
     void setBlockSize(long long blockSize);
     long long getBlockSize() {return blockSize;}
     long long getBlockCount() {return blockCount;}

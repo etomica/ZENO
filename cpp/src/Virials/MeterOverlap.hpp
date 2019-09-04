@@ -194,43 +194,6 @@ reset() {
     ratioCovariance = (double ** ) realloc2D ((void ** ) ratioCovariance, numData, numData, sizeof(double));
 }
 
-/// Returns block covariance.
-///
-template <class T>
-double **
-MeterOverlap<T>::
-getBlockCovariance() {
-    double totSamples = blockSize*blockCount;
-    double totSq = totSamples*totSamples;
-    for (int i = 0; i < numData; ++i) {
-        for (int j = 0; j <= i; ++j) {
-            blockCovariance[i][j] = blockCovariance[j][i] = blockCovSum[i][j] / blockCount - blockSum[i] * blockSum[j] / totSq;
-        }
-    }
-
-    return blockCovariance;
-}
-
-/// Returns block correlation.
-///
-template <class T>
-double **
-MeterOverlap<T>::
-getBlockCorrelation() {
-    getBlockCovariance();
-    for (int i = 0; i < numData; ++i) {
-        for (int j = 0; j < i; ++j) {
-            double d = blockCovariance[i][i] * blockCovariance[j][j];
-            double c = d <= 0 ? 0 : blockCovariance[i][j] / sqrt(d);
-            blockCovariance[i][j] = blockCovariance[j][i] = c;
-        }
-    }
-    for (int i = 0; i < numData; ++i) {
-        blockCovariance[i][i] = 1;
-    }
-    return blockCovariance;
-}
-
 /// Returns ratio statistics.
 ///
 template <class T>

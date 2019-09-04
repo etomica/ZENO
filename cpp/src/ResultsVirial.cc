@@ -68,12 +68,18 @@ putData(int threadNum,
     reduced = false;
 
     double ** stats = refMeter->getStatistics();
+    double ** blockCor = refMeter->getBlockCorrelation();
     refAverage[threadNum]=Uncertain<double>(stats[0][MeterOverlap<double>::AVG_AVG], pow(stats[0][MeterOverlap<double>::AVG_ERR],2));
     refOverlapAverage[threadNum]=Uncertain<double>(stats[1][MeterOverlap<double>::AVG_AVG], pow(stats[1][MeterOverlap<double>::AVG_ERR],2));
+    double blockCov = blockCor[0][1] * refAverage[threadNum].getStdDev() * refOverlapAverage[threadNum].getStdDev();
+    Uncertain<double>::setCovariance(refAverage[threadNum], refOverlapAverage[threadNum], blockCov);
     refNumSteps[threadNum] = refMeter->getNumSamples();
     stats = targetMeter->getStatistics();
     targetAverage[threadNum]=Uncertain<double>(stats[0][MeterOverlap<double>::AVG_AVG], pow(stats[0][MeterOverlap<double>::AVG_ERR],2));
     targetOverlapAverage[threadNum]=Uncertain<double>(stats[1][MeterOverlap<double>::AVG_AVG], pow(stats[1][MeterOverlap<double>::AVG_ERR],2))/refMeter->getAlpha()[0];
+    blockCor = targetMeter->getBlockCorrelation();
+    blockCov = blockCor[0][1] * targetAverage[threadNum].getStdDev() * targetOverlapAverage[threadNum].getStdDev();
+    Uncertain<double>::setCovariance(targetAverage[threadNum], targetOverlapAverage[threadNum], blockCov);
     targetNumSteps[threadNum] = targetMeter->getNumSamples();
 }
 
