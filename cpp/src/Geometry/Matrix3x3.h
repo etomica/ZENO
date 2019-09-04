@@ -606,24 +606,22 @@ template <class eleT>
 void
 Matrix3x3<eleT>::
 transform(Vector3<eleT> & A) const {
-    for(int i = 0; i < 3; ++i)
+    eleT X = 0;
+    eleT Y = 0;
+    eleT Z = 0;
+
+    for(int k = 0; k < 3; ++k)
     {
-        eleT X = 0;
-        eleT Y = 0;
-        eleT Z = 0;
+        X += get(0,k) * A.get(k);
+        Y += get(1,k) * A.get(k);
+        Z += get(2,k) * A.get(k);
 
-        for(int k = 0; k < 3; ++k)
-        {
-            X += get(0,k) * A.get(k);
-            Y += get(1,k) * A.get(k);
-            Z += get(2,k) * A.get(k);
-
-        }
-        A.set(0, X);
-        A.set(1, Y);
-        A.set(2, Z);
     }
+    A.set(0, X);
+    A.set(1, Y);
+    A.set(2, Z);
 }
+
 
 template <class eleT>
 void

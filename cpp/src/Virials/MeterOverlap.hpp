@@ -94,15 +94,6 @@ getNumAlpha() {
  return numAlpha;
 }
 
-/// Returns alpha.
-///
-template <class T>
-const double *
-MeterOverlap<T>::
-getAlpha(){
-    return alpha;
-}
-
 /// Collects data.
 ///
 template <class T>
@@ -204,43 +195,6 @@ reset() {
     blockCovariance = (double **) realloc2D((void **) blockCovariance, numData, numData, sizeof(double));
     ratioStats = (double ** ) realloc2D ((void ** ) ratioStats, numData, 3, sizeof(double));
     ratioCovariance = (double ** ) realloc2D ((void ** ) ratioCovariance, numData, numData, sizeof(double));
-}
-
-/// Returns statistics.
-///
-template <class T>
-double **
-MeterOverlap<T>::
-getStatistics() {
-    if (blockCount == 0) {
-        for (int i = 0; i < numData; ++i) {
-            stats[i][AVG_CUR] = mostRecent[i];
-            stats[i][1] = stats[i][2] = stats[i][3] = NAN;
-        }
-        return stats;
-    }
-    for (int i = 0; i < numData; ++i) {
-        stats[i][AVG_CUR] = mostRecent[i];
-        stats[i][AVG_AVG] = blockSum[i] / (blockSize * blockCount);
-        if (blockCount == 1) {
-            for (int i = 0; i < numData; ++i) {
-                stats[i][AVG_ERR] = stats[i][AVG_ACOR] = NAN;
-            }
-            continue;
-        }
-        stats[i][AVG_ERR] = blockSum2[i] / blockCount - stats[i][AVG_AVG] * stats[i][AVG_AVG];
-        if (stats[i][AVG_ERR]<0) stats[i][AVG_ERR] = 0;
-        if (stats[i][AVG_ERR] == 0) {
-            stats[i][AVG_ACOR] = 0;
-        }
-        else {
-            double bc;
-            bc = (((2 * blockSum[i] / blockSize - firstBlockSum[i] - prevBlockSum[i]) * stats[i][AVG_AVG] - correlationSum[i]) / (1 - blockCount) + stats[i][AVG_AVG] * stats[i][AVG_AVG]) / stats[i][AVG_ERR];
-            stats[i][AVG_ACOR] = (std::isnan(bc) || bc <= -1 || bc >= 1) ? 0 : bc;
-        }
-        stats[i][AVG_ERR] = sqrt(stats[i][AVG_ERR] / (blockCount - 1));
-    }
-    return stats;
 }
 
 /// Returns block covariance.

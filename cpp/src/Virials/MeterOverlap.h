@@ -30,9 +30,39 @@ class MeterOverlap {
     ~MeterOverlap();
     void setAlpha(double alphaCenter, double alphaSpan);
     int getNumAlpha();
-    const double * getAlpha();
+    const double * getAlpha(){return alpha;}
     void collectData();
-    double ** getStatistics();
+    double ** getStatistics() {
+        if (blockCount == 0) {
+            for (int i = 0; i < numData; ++i) {
+                stats[i][AVG_CUR] = mostRecent[i];
+                stats[i][1] = stats[i][2] = stats[i][3] = NAN;
+            }
+            return stats;
+        }
+        for (int i = 0; i < numData; ++i) {
+            stats[i][AVG_CUR] = mostRecent[i];
+            stats[i][AVG_AVG] = blockSum[i] / (blockSize * blockCount);
+            if (blockCount == 1) {
+                for (int i = 0; i < numData; ++i) {
+                    stats[i][AVG_ERR] = stats[i][AVG_ACOR] = NAN;
+                }
+                continue;
+            }
+            stats[i][AVG_ERR] = blockSum2[i] / blockCount - stats[i][AVG_AVG] * stats[i][AVG_AVG];
+            if (stats[i][AVG_ERR]<0) stats[i][AVG_ERR] = 0;
+            if (stats[i][AVG_ERR] == 0) {
+                stats[i][AVG_ACOR] = 0;
+            }
+            else {
+                double bc;
+                bc = (((2 * blockSum[i] / blockSize - firstBlockSum[i] - prevBlockSum[i]) * stats[i][AVG_AVG] - correlationSum[i]) / (1 - blockCount) + stats[i][AVG_AVG] * stats[i][AVG_AVG]) / stats[i][AVG_ERR];
+                stats[i][AVG_ACOR] = (std::isnan(bc) || bc <= -1 || bc >= 1) ? 0 : bc;
+            }
+            stats[i][AVG_ERR] = sqrt(stats[i][AVG_ERR] / (blockCount - 1));
+        }
+        return stats;
+    }
     double ** getBlockCovariance();
     double ** getBlockCorrelation();
     void setBlockSize(long long blockSize);
