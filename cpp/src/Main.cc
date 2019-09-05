@@ -1392,7 +1392,7 @@ doVirialSamplingThread(Parameters const * parameters,
     //virialProduction.printResults(NULL);
 
     resultsVirial->putData(threadNum, virialProduction.getRefMeter(), virialProduction.getTargetMeter());
-    resultsVirial->putVirialCoefficient(threadNum, virialProduction.getFullStats()[0][0], virialProduction.getFullStats()[0][1]);
+    resultsVirial->putVirialCoefficient(threadNum, virialProduction.getFullStats()[0][0], pow(virialProduction.getFullStats()[0][1],2));
 }
 
 /// Prints parameters, results, and (optionally) detailed running time
