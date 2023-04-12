@@ -122,7 +122,7 @@ class Zeno {
   /// function is called, and will be locked by the function.  If the geometry
   /// is in the locked state when the function is called, it will not be added.
   ///
-  Zeno(MixedModel<double> * modelToProcess);
+  Zeno(MixedModel<double> * modelToProcess, Potential<double> & potential);
   
   ~Zeno();
 
@@ -314,6 +314,7 @@ class Zeno {
      ParametersResults const & parametersResults,
      BoundingSphere const & boundingSphere,
      Model const & model,
+     Potential<double> const & potential,
      std::vector<RandomNumberGenerator> * threadRNGs,
      ResultsVirial * * resultsVirial);
 
@@ -321,6 +322,7 @@ class Zeno {
                         long long numStepsInProcess,
                         BoundingSphere const & boundingSphere,
                         Model const & model,
+                        Potential<double> const & potential,
                         std::vector<RandomNumberGenerator> * threadRNGs,
                         ResultsVirial * resultsVirial,
                         double refDiameter);
@@ -329,6 +331,7 @@ class Zeno {
     void doVirialSamplingThread(ParametersVirial const * parameters,
 			        BoundingSphere const & boundingSphere, 
 			        Model const & model,
+			        Potential<double> const & potential,
 			        int threadNum,
 			        long long stepsInThread,
 			        Timer const * totalTimer,
@@ -340,6 +343,7 @@ class Zeno {
   int mpiRank;
 
   Model model;
+  Potential<double> potential;
 
   BoundingSphere modelBoundingSphere;
 

@@ -197,7 +197,7 @@ runSteps(int numSteps) {
     if (stepCount >= nextCheck) {
         double jBestAlpha;
         analyze(jBestAlpha);
-        if (verbose) printf("alpha  avg: %22.15e   err: %12.5e   cor: % 6.4f\n", newAlpha, newAlphaErr, alphaCor);
+        if (verbose) printf("steps: %ld  alpha  avg: %22.15e   err: %12.5e   cor: % 6.4f\n", stepCount, newAlpha, newAlphaErr, alphaCor);
         int numAlpha = refMeter.getNumAlpha();
         double nextCheckFac = 1.4;
         if (jBestAlpha==0 || jBestAlpha>(numAlpha-1)*0.999999) alphaSpan *= 2;

@@ -66,6 +66,7 @@
 #include "BodParser/BodParser.h"
 #include "MapParser/MapParser.h"
 #include "XyzParser/XyzParser.h"
+#include "FfParser/FfParser.h"
 
 #include "Results.h"
 
@@ -113,6 +114,10 @@ parseXyzFile(ParametersLocal const & parametersLocal,
 	     std::list<std::string> * comments);
 
 void
+parseFfFile(ParametersLocal * parametersLocal,
+	    Potential<double> * potential);
+
+void
 broadcastSnapshots(std::list<zeno::MixedModel<double> > * snapshots);
   
 int
@@ -124,6 +129,7 @@ runZeno(ParametersLocal const & parametersLocal,
 	double readTime,
 	double broadcastTime,
 	MixedModel<double> * model,
+	Potential<double> & potential,
 	CsvItems * csvItems);
 
 void
@@ -288,6 +294,7 @@ int main(int argc, char **argv) {
   }
 
   MixedModel<double> model;
+  Potential<double> potential;
 
   Timer readTimer;
 
@@ -298,9 +305,16 @@ int main(int argc, char **argv) {
 		 &parametersInteriorSampling,
 		 &parametersResults,
 		 &model);
+
+    if (parametersLocal.getFfInputFileNameWasSet()) {
+      parseFfFile(&parametersLocal,
+		  &potential);
+    }
+    potential.initialize(model.getSpheres()->size());
+
     readTimer.stop();
   }
-  
+
   Timer broadcastTimer;
 
   broadcastTimer.start();
@@ -362,6 +376,7 @@ int main(int argc, char **argv) {
 	      readTimer.getTime(),
 	      broadcastTimer.getTime(),
 	      &model,
+              potential,
 	      &perRunCsvItemsList.back());
 
     if (runZenoStatus != 0) {
@@ -439,6 +454,7 @@ int main(int argc, char **argv) {
 		readTimer.getTime(),
 		broadcastTimer.getTime(),
 		&snapshot,
+                potential,
 		&perRunCsvItemsList.back());
 
       if (runZenoStatus != 0) {
@@ -639,6 +655,14 @@ parseCommandLine(int argc, char **argv,
     parametersVirial->setOrder(args_info.virial_coefficient_order_arg);
   }
 
+  if (args_info.virial_reference_diameter_given) {
+    parametersVirial->setReferenceDiameter(args_info.virial_reference_diameter_arg);
+  }
+
+  if (args_info.temperature_given) {
+    parametersVirial->setTemperature(args_info.temperature_arg);
+  }
+
   parametersLocal->setPrintCounts(args_info.print_counts_given);
   parametersLocal->setPrintBenchmarks(args_info.print_benchmarks_given);
 
@@ -679,7 +703,7 @@ parseBodFile(ParametersLocal * parametersLocal,
     std::cerr << "Error parsing bod input file " << fileName << std::endl;
     exit(EXIT_FAILURE);
   }
-  
+
   inputFile.close();
 }
 
@@ -749,6 +773,37 @@ parseXyzFile(ParametersLocal const & parametersLocal,
   inputFile.close();
 }
 
+/// Parses the forcefield file given as input and extracts bonds, the type of
+/// the interactoin potentials and potential parameters.
+void
+parseFfFile(ParametersLocal * parametersLocal,
+	    Potential<double> * potential) {
+
+  std::string fileName = parametersLocal->getFfInputFileName();
+
+  std::ifstream inputFile;
+
+  inputFile.open(fileName, std::ifstream::in);
+
+  if (!inputFile.is_open()) {
+    std::cerr << "Error opening ff input file " << fileName << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  ff_parser::FfParser parser(inputFile,
+			     potential);
+
+  int parseResult = parser.parse();
+
+  if (parseResult != 0) {
+    std::cerr << "Error parsing bod input file " << fileName << std::endl;
+    exit(EXIT_FAILURE);
+  }
+ 
+  inputFile.close();
+}
+
+
 /// If MPI rank is 0, broadcasts the list of snapshots to all other MPI nodes.
 /// If MPI rank is not 0, fills the list of snapshots with the snapshots
 /// received from the rank 0 node.
@@ -781,9 +836,10 @@ runZeno(ParametersLocal const & parametersLocal,
 	double readTime,
 	double broadcastTime,
 	MixedModel<double> * model,
+	Potential<double> & potential,
 	CsvItems * csvItems) {
   
-  Zeno zeno(model);
+  Zeno zeno(model, potential);
 
   if (parametersLocal.getPrintBenchmarks() && 
       parametersLocal.getMpiRank() == 0) {

@@ -80,6 +80,7 @@ namespace bod_parser {
                              zeno::Vector3<double> v3);
 	        void addVoxels(std::string voxelsFileName);
 	        void addTrajectory(std::string xyzFileName, std::string mapFileName);
+	        void addForcefield(std::string ffFileName);
 	        void setST(double skinThickness);
 	        void setRLAUNCH(double launchRadius);
 	        void setHUNITS(double number, std::string unitString);
@@ -150,6 +151,11 @@ namespace bod_parser {
                                      [phx::bind(&bod_parser::BodParser::addTrajectory, parent,
                                       qi::_1, qi::_2)];
 
+                        forcefield = (qi::no_case["FORCEFIELD"] >> qi::omit[+qi::blank] >>
+                                      word >> qi::omit[*qi::space])
+                                     [phx::bind(&bod_parser::BodParser::addForcefield, parent,
+                                      qi::_1)];
+
                         parameter_st = (qi::no_case["ST"] >> qi::omit[+qi::blank] >>
                                         qi::double_ >> qi::omit[*qi::space])
                                        [phx::bind(&bod_parser::BodParser::setST, parent,
@@ -209,6 +215,7 @@ namespace bod_parser {
                                   atom |
                                   voxels |
                                   trajectory |
+                                  forcefield |
                                   parameter);
                     }
 
@@ -220,6 +227,7 @@ namespace bod_parser {
                     qi::rule<std::string::const_iterator, void()> atom;
                     qi::rule<std::string::const_iterator, void()> voxels;
                     qi::rule<std::string::const_iterator, void()> trajectory;
+                    qi::rule<std::string::const_iterator, void()> forcefield;
                     qi::rule<std::string::const_iterator, void()> parameter_st;
                     qi::rule<std::string::const_iterator, void()> parameter_rlaunch;
                     qi::rule<std::string::const_iterator, void()> parameter_hunits;

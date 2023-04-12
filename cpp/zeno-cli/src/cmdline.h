@@ -112,6 +112,12 @@ struct gengetopt_args_info
   int virial_coefficient_order_arg;	/**< @brief Order of virial coefficient to compute.  */
   char * virial_coefficient_order_orig;	/**< @brief Order of virial coefficient to compute original value given at command line.  */
   const char *virial_coefficient_order_help; /**< @brief Order of virial coefficient to compute help description.  */
+  double virial_reference_diameter_arg;	/**< @brief Virial coefficient reference diameter.  */
+  char * virial_reference_diameter_orig;	/**< @brief Virial coefficient reference diameter original value given at command line.  */
+  const char *virial_reference_diameter_help; /**< @brief Virial coefficient reference diameter help description.  */
+  double temperature_arg;	/**< @brief Temperature.  */
+  char * temperature_orig;	/**< @brief Temperature original value given at command line.  */
+  const char *temperature_help; /**< @brief Temperature help description.  */
   
   unsigned int help_given ;	/**< @brief Whether help was given.  */
   unsigned int version_given ;	/**< @brief Whether version was given.  */
@@ -134,6 +140,8 @@ struct gengetopt_args_info
   unsigned int print_benchmarks_given ;	/**< @brief Whether print-benchmarks was given.  */
   unsigned int virial_steps_given ;	/**< @brief Whether virial-steps was given.  */
   unsigned int virial_coefficient_order_given ;	/**< @brief Whether virial-coefficient-order was given.  */
+  unsigned int virial_reference_diameter_given ;	/**< @brief Whether virial-reference-diameter was given.  */
+  unsigned int temperature_given ;	/**< @brief Whether temperature was given.  */
 
 } ;
 

@@ -165,6 +165,10 @@ void bod_parser::BodParser::addTrajectory(std::string xyzFileName, std::string m
   parametersLocal->setMapInputFileName(mapFileName);
 }
 
+void bod_parser::BodParser::addForcefield(std::string ffFileName) {
+  parametersLocal->setFfInputFileName(ffFileName);
+}
+
 void bod_parser::BodParser::setST(double skinThickness) {
   parametersWalkOnSpheres->setSkinThickness(skinThickness);
 }

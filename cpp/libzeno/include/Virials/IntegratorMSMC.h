@@ -21,7 +21,6 @@
 #include "../Timer.h"
 #include "../Geometry/Sphere.h"
 #include "../Geometry/MixedModel.h"
-#include "OverlapTester.h"
 #include "MCMove.h"
 #include "MeterOverlap.h"
 #include "Particle.h"

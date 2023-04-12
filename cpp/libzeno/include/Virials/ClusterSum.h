@@ -16,7 +16,7 @@
 #ifndef CLUSTER_SUM_H
 #define CLUSTER_SUM_H
 
-#include "OverlapTester.h"
+#include "Potential.h"
 
 namespace zeno {
 
@@ -26,13 +26,12 @@ namespace zeno {
 template <class T>
 class ClusterSum {
  public:
-    ClusterSum(std::vector<Particle<T> *> * particles, OverlapTester<T> const * overlapTester);
+    ClusterSum(std::vector<Particle<T> *> * particles);
     virtual ~ClusterSum();
     virtual double value() = 0;
 
  protected:
     std::vector<Particle<T> *> * particles;
-    OverlapTester<T> const * overlapTester;
 };
 
 ///Sub class of ClusterSum to compute cluster sum for chains.
@@ -56,11 +55,13 @@ private:
 template <class T>
 class ClusterSumWheatleyRecursion : public ClusterSum<T>{
 public:
-    ClusterSumWheatleyRecursion(std::vector<Particle<T> *> * particles, OverlapTester<T> const * overlapTester);
+    ClusterSumWheatleyRecursion(std::vector<Particle<T> *> * particles, Potential<T> const * potential, double temperature);
     ~ClusterSumWheatleyRecursion();
     double value();
 
 private:
+    Potential<T> const * potential;
+    double temperature;
     double preFac;
 };
 
@@ -72,9 +73,8 @@ using namespace zeno;
 
 template <class T>
 ClusterSum<T>::
-ClusterSum(std::vector<Particle<T> *> * particles, OverlapTester<T> const * overlapTester):
-particles(particles),
-overlapTester(overlapTester){
+ClusterSum(std::vector<Particle<T> *> * particles):
+particles(particles){
 }
 
 template <class T>
@@ -84,12 +84,11 @@ ClusterSum<T>::
 
 /// Constructs a sub class of ClusterSum to compute cluster sum for chains.
 ///
-
 template <class T>
 ClusterSumChain<T>::
 ClusterSumChain(std::vector<Particle<T> *> * particles, double diameter,
                 double ringFac, double chainFac):
-        ClusterSum<T>(particles, NULL), diameter(diameter), ringFac(ringFac), chainFac(chainFac){
+        ClusterSum<T>(particles), diameter(diameter), ringFac(ringFac), chainFac(chainFac) {
 }
 
 template <class T>
@@ -173,8 +172,8 @@ value(){
 ///
 template <class T>
 ClusterSumWheatleyRecursion<T>::
-ClusterSumWheatleyRecursion(std::vector<Particle<T> *> * particles, OverlapTester<T> const * overlapTester):
-ClusterSum<T>(particles, overlapTester){
+ClusterSumWheatleyRecursion(std::vector<Particle<T> *> * particles, Potential<T> const * potential, double temperature):
+ClusterSum<T>(particles), potential(potential), temperature(temperature) {
     const int n = ClusterSum<T>::particles->size();
     int factorial = 1;
     for (int m = 2; m <= n; ++m){
@@ -202,8 +201,10 @@ value() {
         int i = 1 << iMol1;
         fQ[i] = 1.0;
         for(int iMol2 = iMol1 + 1; iMol2 < n; ++iMol2){
-            bool overlapped = ClusterSum<T>::overlapTester->isOverlapped(ClusterSum<T>::particles->at(iMol1), ClusterSum<T>::particles->at(iMol2));
-            fQ[i|(1<<iMol2)] = overlapped ? 0 : 1;
+            double u = potential->energy2(ClusterSum<T>::particles->at(iMol1), ClusterSum<T>::particles->at(iMol2));
+            double e = std::exp(-u/temperature);
+            if (e < 1e-12) e = 0;
+            fQ[i|(1<<iMol2)] = e;
         }
     }
     //generate all partitions and compute
