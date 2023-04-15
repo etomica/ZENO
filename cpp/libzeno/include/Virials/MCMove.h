@@ -525,11 +525,11 @@ doTrial(double oldValue, bool & accepted) {
         modified.push_back(a);
         Vector3<double> axis;
         MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomUtilities()->setRandomOnSphere(&axis);
-        stepParameters.push_back({b, a, s, axis});
         Vector3<T> dr = particle->getSpherePosition(b) - particle->getSpherePosition(a);
         Vector3<T> projection = axis.dot(dr)/dr.getMagnitudeSqr() * dr;
         axis -= projection;
         axis.normalize();
+        stepParameters.push_back({b, a, s, axis});
         Matrix3x3<T> rotation;
         rotation.setAxisAngle(axis, s);
         Vector3<T> shift;
@@ -709,7 +709,7 @@ doTrial(double oldValue, bool & accepted) {
         }
         newValue = oldValue;
     }
-  //std::cout << "angle doTrial done" << std::endl;
+  //std::cout << "torsion doTrial done" << std::endl;
     return newValue;
 }
 
