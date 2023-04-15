@@ -486,8 +486,8 @@ Potential<T>::initialize(int numSpheres) {
   for (int i=0; i<(int)nonbondCoeffs1.size(); i++) {
     double* inbc = nonbondCoeffs1[i];
     if (!inbc) {
-      std::cerr << "No nonbonded interaction parameters found for sphere type " << i << std::endl;
-      exit(1);
+      // there may be no spheres of this type, so ignore now and hope for the best later
+      continue;
     }
     empty = false;
     for (int j=0; j<=i; j++) {
@@ -558,7 +558,8 @@ Potential<T>::energy1(Particle<T> * particle) const {
         double ulj, nbs;
         switch (nonbondStyle) {
           case HardSphere:
-            uTot += nonbondedScaling[i][j]*uHardSphere(particle->getSpherePosition(i),
+            if (nonbondedScaling[i][j] == 0) break;
+            uTot += uHardSphere(particle->getSpherePosition(i),
                                 particle->getSpherePosition(j),
                                 nonbondCoeffs[iType][jType]);
             break;
