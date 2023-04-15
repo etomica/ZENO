@@ -977,13 +977,13 @@ Zeno::doVirialSamplingThread(ParametersVirial const * parameters,
     MCMoveRotate<double , RandomNumberGenerator> mcMoveRotateRef(refIntegrator, &clusterSumRef);
     MCMoveBondStretch<double , RandomNumberGenerator> mcMoveStretchRef(refIntegrator, &clusterSumRef, potential, temperature);
     MCMoveBondAngle<double , RandomNumberGenerator> mcMoveAngleRef(refIntegrator, &clusterSumRef, potential, temperature);
-    MCMoveBondAngle<double , RandomNumberGenerator> mcMoveTorsionRef(refIntegrator, &clusterSumRef, potential, temperature);
+    MCMoveBondTorsion<double , RandomNumberGenerator> mcMoveTorsionRef(refIntegrator, &clusterSumRef, potential, temperature);
     refIntegrator.addMove(&mcMoveChain, 1.0);
     if (model.getSpheres()->size() > 1) {
       refIntegrator.addMove(&mcMoveRotateRef, 1.0);
       if (potential.getBondStyle() != Fixed) refIntegrator.addMove(&mcMoveStretchRef, 1.0);
       if (potential.getAngleStyle() != AngleFixed) refIntegrator.addMove(&mcMoveAngleRef, 1.0);
-      if (potential.getHasTorsion()) refIntegrator.addMove(&mcMoveTorsionRef, 1.0);
+      if (potential.getHasTorsion() && potential.getAngleStyle() != AngleNone) refIntegrator.addMove(&mcMoveTorsionRef, 1.0);
     }
     refIntegrator.setCurrentValue(clusterSumRef.value());
 
@@ -1000,13 +1000,13 @@ Zeno::doVirialSamplingThread(ParametersVirial const * parameters,
     MCMoveRotate<double , RandomNumberGenerator> mcMoveRotateTarget(targetIntegrator, &clusterSumTargetT);
     MCMoveBondStretch<double , RandomNumberGenerator> mcMoveStretchTarget(targetIntegrator, &clusterSumTargetT, potential, temperature);
     MCMoveBondAngle<double , RandomNumberGenerator> mcMoveAngleTarget(targetIntegrator, &clusterSumTargetT, potential, temperature);
-    MCMoveBondAngle<double , RandomNumberGenerator> mcMoveTorsionTarget(targetIntegrator, &clusterSumTargetT, potential, temperature);
+    MCMoveBondTorsion<double , RandomNumberGenerator> mcMoveTorsionTarget(targetIntegrator, &clusterSumTargetT, potential, temperature);
     targetIntegrator.addMove(&mcMoveTranslate, 1.0);
     if (model.getSpheres()->size() > 1) {
       targetIntegrator.addMove(&mcMoveRotateTarget, 1.0);
       if (potential.getBondStyle() != Fixed) targetIntegrator.addMove(&mcMoveStretchTarget, 1.0);
       if (potential.getAngleStyle() != AngleFixed) targetIntegrator.addMove(&mcMoveAngleTarget, 1.0);
-      if (potential.getHasTorsion()) targetIntegrator.addMove(&mcMoveTorsionTarget, 1.0);
+      if (potential.getHasTorsion() && potential.getAngleStyle() != AngleNone) targetIntegrator.addMove(&mcMoveTorsionTarget, 1.0);
     }
     targetIntegrator.setCurrentValue(clusterSumTargetT.value());
 

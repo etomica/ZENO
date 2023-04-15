@@ -506,6 +506,7 @@ doTrial(double oldValue, bool & accepted) {
 
     for(int j = 0; j < (int)MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size(); j++) {
         Particle<T> * particle = MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j);
+        if (particle->numSpheres() < 3) continue;
         uOld += potential.energy1(particle);
         std::vector<int> modified;
         double s = (MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomNumberGenerator()->getRandIn01() - 0.5) * MCMove<T, RandomNumberGenerator>::stepSize;
@@ -513,7 +514,7 @@ doTrial(double oldValue, bool & accepted) {
         do {
             b = (int)(MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomNumberGenerator()->getRandIn01() * bondedPartners->size());
         }
-        while (b == (int)bondedPartners->size() || (int)bondedPartners->at(b).size() == 0);
+        while (b == (int)bondedPartners->size() || (int)bondedPartners->at(b).size() < 2);
         modified.push_back(b);
         int a = 0;
         do {
@@ -554,6 +555,7 @@ doTrial(double oldValue, bool & accepted) {
         for(int j = 0; j < (int)(MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size()); ++j)
         {
             Particle<T> * particle = MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j);
+            if (particle->numSpheres() < 3) continue;
             AngleParameters sp = stepParameters[j];
             int b = sp.sphere1, a = sp.sphere2;
             std::vector<int> modified;
@@ -626,7 +628,7 @@ MCMoveBondTorsion<T, RandomNumberGenerator>::
 template <class T, class RandomNumberGenerator>
 double MCMoveBondTorsion<T, RandomNumberGenerator>::
 doTrial(double oldValue, bool & accepted) {
-  //std::cout << "angle doTrial" << std::endl;
+  //std::cout << "torsion doTrial" << std::endl;
     MCMove<T, RandomNumberGenerator>::numTrials++;
     if (MCMove<T, RandomNumberGenerator>::tunable && MCMove<T, RandomNumberGenerator>::numTrials >= MCMove<T, RandomNumberGenerator>::adjustInterval) {
         MCMove<T, RandomNumberGenerator>::adjustStepSize();
@@ -641,6 +643,7 @@ doTrial(double oldValue, bool & accepted) {
 
     for(int j = 0; j < (int)MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size(); j++) {
         Particle<T> * particle = MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j);
+        if (particle->numSpheres() < 4) continue;
         uOld += potential.energy1(particle);
         std::vector<int> modified;
         double s = (MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomNumberGenerator()->getRandIn01() - 0.5) * MCMove<T, RandomNumberGenerator>::stepSize;
@@ -654,8 +657,8 @@ doTrial(double oldValue, bool & accepted) {
         } while ((int)bondedPartners->at(b).size() < 2);
         modified.push_back(a);
         modified.push_back(b);
-        stepParameters.push_back({b, a, s});
-        //std::cout << "angle doTrial j " << j << " b " << b << " a " << a << std::endl;
+        stepParameters.push_back({a, b, s});
+        //std::cout << "torsion doTrial j " << j << " a " << a << " b " << b << std::endl;
         Vector3<double> axis = particle->getSpherePosition(b) - particle->getSpherePosition(a);
         axis.normalize();
         Matrix3x3<T> rotation;
@@ -680,19 +683,22 @@ doTrial(double oldValue, bool & accepted) {
     MCMove<T, RandomNumberGenerator>::chiSum += std::min(1.0, ratio);
 
     accepted = (ratio > 1) || (ratio > MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomNumberGenerator()->getRandIn01());
-  //std::cout << "angle doTrial accepted? " << accepted << std::endl;
+  //std::cout << "torsion doTrial accepted? " << accepted << std::endl;
     if(!accepted)
     {
         for(int j = 0; j < (int)(MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size()); ++j)
         {
             Particle<T> * particle = MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j);
-            AngleParameters sp = stepParameters[j];
-            int b = sp.sphere1, a = sp.sphere2;
+            if (particle->numSpheres() < 4) continue;
+            TorsionParameters sp = stepParameters[j];
+            int a = sp.sphere1, b = sp.sphere2;
             std::vector<int> modified;
-            modified.push_back(b);
             modified.push_back(a);
+            modified.push_back(b);
+            Vector3<double> axis = particle->getSpherePosition(b) - particle->getSpherePosition(a);
+            axis.normalize();
             Matrix3x3<T> rotation;
-            rotation.setAxisAngle(sp.axis, -sp.step);
+            rotation.setAxisAngle(axis, -sp.step);
             Vector3<T> shift;
             transformBondedAtoms(rotation, particle, bondedPartners, a, a, shift, modified);
             transformBondedAtoms(rotation, particle, bondedPartners, a, b, shift, modified);
