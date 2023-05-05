@@ -201,14 +201,17 @@ runSteps(int numSteps) {
         int numAlpha = refMeter.getNumAlpha();
         double nextCheckFac = 1.4;
         if (jBestAlpha==0 || jBestAlpha>(numAlpha-1)*0.999999) alphaSpan *= 2;
+        else if (alphaCor < 0.3 && alphaSpan > 1 && jBestAlpha>numAlpha*0.2 && jBestAlpha<(numAlpha-1)*0.8 && newAlphaErr/newAlpha < 0.2) alphaSpan *= 0.1;
         else if (alphaCor < 0.3 && alphaSpan > 1 && jBestAlpha>numAlpha*0.2 && jBestAlpha<(numAlpha-1)*0.8) alphaSpan *= 0.25;
         else if (alphaCor < 0.6 && alphaSpan > 1 && jBestAlpha>numAlpha*0.2 && jBestAlpha<(numAlpha-1)*0.8) alphaSpan *= 0.6;
-        else if (alphaCor > 0.2 || newAlphaErr/newAlpha > 0.1) nextCheckFac = 2;
-        else if (alphaCor < 0.1) allDone = true;
+        else if (alphaCor > 0.3 || newAlphaErr/newAlpha > 0.2) nextCheckFac = 2;
+        else if (alphaCor < 0.2) allDone = true;
+        if (verbose) printf("  alphaSpan: %f   nextCheckFac: %f\n", alphaSpan, nextCheckFac);
         if (alphaSpan < 1) alphaSpan = 1;
+        if (alphaSpan > 50) alphaSpan = 50;
         setAlpha(newAlpha, alphaSpan);
         nextCheck = stepCount * (1 + nextCheckFac);
-        if (nextCheck > targetMeter.getBlockSize() * 200) targetMeter.setBlockSize(nextCheck / 200);
+        if ((nextCheck-stepCount) > targetMeter.getBlockSize() * 200) targetMeter.setBlockSize((nextCheck-stepCount) / 200);
     }
 }
 
