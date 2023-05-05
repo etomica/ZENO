@@ -67,7 +67,7 @@ enum BondStyle {Fixed, Harmonic, FENE};
 
 enum AngleStyle {AngleNone, AngleFixed, AngleHarmonic};
 
-enum NonbondStyle {HardSphere, LennardJones};
+enum NonbondStyle {HardSphere, LennardJones, WCA};
 
 struct BondedPartner {
   int sphere2;
@@ -141,6 +141,7 @@ class Potential {
   double uHardSphere1(Vector3<T> ri, Vector3<T> rj, double sigma) const;
   double uHardSphere(Vector3<T> ri, Vector3<T> rj, double* c) const;
   double uLennardJones(Vector3<T> ri, Vector3<T> rj, double* c) const;
+  double uWCA(Vector3<T> ri, Vector3<T> rj, double* c) const;
 };
 
 template <class T>
@@ -210,6 +211,12 @@ Potential<T>::Potential(const Potential &p) : empty(true),
         nonbondCoeffs1.push_back(cNew);
       }
       else if (nonbondStyle == NonbondStyle::LennardJones) {
+        double* cNew = new double[2];
+        cNew[0] = c[0];
+        cNew[1] = c[1];
+        nonbondCoeffs1.push_back(cNew);
+      }
+      else if (nonbondStyle == NonbondStyle::WCA) {
         double* cNew = new double[2];
         cNew[0] = c[0];
         cNew[1] = c[1];
@@ -335,6 +342,9 @@ Potential<T>::setNonbondStyleName(std::string nonbondStyleName) {
   }
   else if (nonbondStyleName.compare("lj") == 0) {
     nonbondStyle = NonbondStyle::LennardJones;
+  }
+  else if (nonbondStyleName.compare("wca") == 0) {
+    nonbondStyle = NonbondStyle::WCA;
   }
   else {
     std::cerr << "Unrecognized nonbond style " << nonbondStyleName << std::endl;
@@ -499,7 +509,8 @@ Potential<T>::initialize(int numSpheres) {
         // additive
         cNew[0] = (inbc[0] + jnbc[0]) / 2;
       }
-      else if (nonbondStyle == NonbondStyle::LennardJones) {
+      else if (nonbondStyle == NonbondStyle::LennardJones ||
+               nonbondStyle == NonbondStyle::WCA) {
         cNew = new double[2];
         // Lorentz-Berthelot
         cNew[0] = (inbc[0] + jnbc[0]) / 2; // sigma
@@ -555,7 +566,7 @@ Potential<T>::energy1(Particle<T> * particle) const {
       for (int j=i+1; j<particle->numSpheres(); j++) {
         // exclude bonded pairs
         int jType = (int)(particle->getModel()->getSpheres()->at(j).getRadius());
-        double ulj, nbs;
+        double ulj, nbs, uwca;
         switch (nonbondStyle) {
           case HardSphere:
             if (nonbondedScaling[i][j] == 0) break;
@@ -572,12 +583,22 @@ Potential<T>::energy1(Particle<T> * particle) const {
               uTot += nbs*ulj;
             }
             break;
+          case WCA:
+            nbs = nonbondedScaling[i][j];
+            if (nbs > 0) {
+              uwca = uWCA(particle->getSpherePosition(i),
+                         particle->getSpherePosition(j),
+                         nonbondCoeffs[iType][jType]);
+              uTot += nbs*uwca;
+            }
+            break;
           default:
             fprintf(stderr, "Unknown nonbond type\n");
             exit(1);
             break;
         }
       }
+      if (std::isinf(uTot)) return uTot;
     }
   }
   if (angleStyle != AngleFixed) {
@@ -604,12 +625,12 @@ double
 Potential<T>::energy2(Particle<T> * particle1, Particle <T> * particle2) const {
   if (bondStyle == Fixed && angleStyle == AngleFixed && nonbondStyle == HardSphere && empty) {
     Vector3<T> x = particle1->getBoundingSpherePosition();
-    Vector3<T> y = particle1->getBoundingSpherePosition();
+    Vector3<T> y = particle2->getBoundingSpherePosition();
     Vector3<T> distCenterVec = x - y;
     T distCenterSqr = distCenterVec.getMagnitudeSqr();
     T radiusX =  particle1->getBoundingSphereRadius();
-    T radiusY =  particle1->getBoundingSphereRadius();
-    if(distCenterSqr > ((radiusX + radiusY)* (radiusX + radiusY))) {
+    T radiusY =  particle2->getBoundingSphereRadius();
+    if(distCenterSqr > ((radiusX + radiusY) * (radiusX + radiusY))) {
         return 0;
     }
   }
@@ -646,12 +667,18 @@ Potential<T>::energy2(Particle<T> * particle1, Particle <T> * particle2) const {
                                   particle2->getSpherePosition(j),
                                   nonbondCoeffs[iType][jType]);
             break;
+          case WCA:
+            uTot += uWCA(particle1->getSpherePosition(i),
+                         particle2->getSpherePosition(j),
+                         nonbondCoeffs[iType][jType]);
+            break;
           default:
             fprintf(stderr, "Unknown nonbond type\n");
             exit(1);
             break;
         }
       }
+      if (std::isinf(uTot)) return uTot;
     }
   }
   return uTot;
@@ -715,6 +742,18 @@ Potential<T>::uLennardJones(Vector3<T> ri, Vector3<T> rj, double* c) const {
   double s6 = s2*s2*s2;
   double s12 = s6*s6;
   return 4*c[1]*(s12 - s6);
+}
+
+template <class T>
+double
+Potential<T>::uWCA(Vector3<T> ri, Vector3<T> rj, double* c) const {
+  Vector3<T> dr = rj - ri;
+  double s2 = c[0]*c[0]/dr.getMagnitudeSqr();
+  if (s2 > 1e50) return INFINITY;
+  if (s2 < 0.793700525984100) return 0;
+  double s6 = s2*s2*s2;
+  double s12 = s6*s6;
+  return 4*c[1]*(s12 - s6) + c[1];
 }
 
 template <class T>
