@@ -839,7 +839,10 @@ runZeno(ParametersLocal const & parametersLocal,
 	Potential<double> & potential,
 	CsvItems * csvItems) {
   
-  Zeno zeno(model, potential);
+  // If we read a forcefield file, then skip preprocessing as it
+  // re-orders the spheres.
+  bool doPreprocess = !parametersLocal.getFfInputFileNameWasSet();
+  Zeno zeno(model, potential, doPreprocess);
 
   if (parametersLocal.getPrintBenchmarks() && 
       parametersLocal.getMpiRank() == 0) {

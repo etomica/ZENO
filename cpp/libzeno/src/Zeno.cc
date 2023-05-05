@@ -64,7 +64,7 @@
 
 using namespace zeno;
 
-Zeno::Zeno(MixedModel<double> * modelToProcess, Potential<double> & potential)
+Zeno::Zeno(MixedModel<double> * modelToProcess, Potential<double> & potential, bool doPreprocess)
   : mpiSize(1),
     mpiRank(0),
     model(),
@@ -94,7 +94,7 @@ Zeno::Zeno(MixedModel<double> * modelToProcess, Potential<double> & potential)
 
   model.addMixedModel(modelToProcess);
   
-  model.preprocess();
+  if (doPreprocess) model.preprocess();
 
   if (!model.isEmpty()) {
     modelBoundingSphere = BoundingSphereGenerator<double>::generate(model);

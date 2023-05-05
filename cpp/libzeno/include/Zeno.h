@@ -122,7 +122,8 @@ class Zeno {
   /// function is called, and will be locked by the function.  If the geometry
   /// is in the locked state when the function is called, it will not be added.
   ///
-  Zeno(MixedModel<double> * modelToProcess, Potential<double> & potential);
+  Zeno(MixedModel<double> * modelToProcess, Potential<double> & potential,
+       bool doPreprocess);
   
   ~Zeno();
 
