@@ -421,7 +421,8 @@ doTrial(double oldValue, bool & accepted) {
         {
             Particle<T> * particle = MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j);
             StretchParameters sp = stepParameters[j];
-            int b = sp.sphere1, a = sp.sphere2, s = -sp.step;
+            int b = sp.sphere1, a = sp.sphere2;
+            double s = -sp.step;
             std::vector<int> modified;
             modified.push_back(b);
             modified.push_back(a);
