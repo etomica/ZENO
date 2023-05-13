@@ -66,6 +66,7 @@ public:
     ClusterSumWheatleyRecursion(std::vector<Particle<T> *> * particles, Potential<T> const * potential, double temperature, int nDerivatives);
     ~ClusterSumWheatleyRecursion();
     double value();
+    virtual std::vector<double> getValues();
 
 private:
     Potential<T> const * potential;
@@ -205,18 +206,49 @@ template <class T>
 double
 ClusterSumWheatleyRecursion<T>::
 value() {
+    return getValues()[0];
+}
+
+/// Computes cluster sum using Wheatley Recursion.
+///
+template <class T>
+std::vector<double>
+ClusterSumWheatleyRecursion<T>::
+getValues() {
+    const int nDer = ClusterSum<T>::values.size() - 1;
     const int n = ClusterSum<T>::particles->size();
     const int nf = (1 << n);
-    double fQ[nf], fC[nf];
-    double fA[nf], fB[nf];
+    double fQ[nf][nDer+1], fC[nf][nDer+1];
+    double fA[nf][nDer+1], fB[nf][nDer+1];
+    double binomial[nDer+1][nDer+1];
+    int factorial[nDer+1];
+    factorial[1] = 1;
+    for (int m=2; m<=nDer; m++) {
+        factorial[m] = factorial[m-1]*m;
+    }
+    for (int m=0; m<=nDer; m++) {
+        for (int l=0; l<=m; l++) {
+            binomial[m][l] = factorial[m] / (factorial[l] * factorial[m-l]);
+        }
+    }
     for(int iMol1 = 0; iMol1 < n; ++iMol1){
         int i = 1 << iMol1;
-        fQ[i] = 1.0;
+        fQ[i][0] = 1.0;
         for(int iMol2 = iMol1 + 1; iMol2 < n; ++iMol2){
             double u = potential->energy2(ClusterSum<T>::particles->at(iMol1), ClusterSum<T>::particles->at(iMol2));
             double e = std::exp(-u/temperature);
             if (e < 1e-12) e = 0;
-            fQ[i|(1<<iMol2)] = e;
+            int ij = i|(1<<iMol2);
+            fQ[ij][0] = e;
+            if (e == 0) {
+              for (int m=1; m<=nDer; m++) {
+                fQ[ij][m] = 0;
+              }
+              continue;
+            }
+            for (int m=1; m<=nDer; m++) {
+              fQ[ij][m] = -fQ[ij][m-1]*u;
+            }
         }
     }
     //generate all partitions and compute
@@ -228,21 +260,33 @@ value() {
             // 2-point set
             continue;
         }
-        fQ[i] = fQ[k];
-        if (fQ[i] == 0) {
+        fQ[i][0] = fQ[k][0];
+        if (fQ[i][0] == 0) {
+            for (int m=1; m<=nDer; m++) {
+                fQ[i][m] = 0;
+            }
             continue;
         }
         for (int l = (j << 1); l < i; l = (l << 1)){
             if ( (l&i) == 0 ) continue;
-            fQ[i] *= fQ[l|j];
+            fQ[i][0] *= fQ[l|j][0];
         }
-        if (fQ[i] == 0) {
+        if (fQ[i][0] == 0) {
+            for (int m=1; m<=nDer; m++) {
+                fQ[i][m] = 0;
+            }
             continue;
+        }
+        double c = std::log(fQ[i][0])*temperature;
+        for (int m=1; m<=nDer; m++) {
+            fQ[i][m] = fQ[i][m-1] * c;
         }
     }
     //Compute the fC's
     for (int i = 1; i < nf; ++i){
-        fC[i] = fQ[i];
+        for (int m=0; m<=nDer; m++) {
+            fC[i][m] = fQ[i][m];
+        }
         int iLowBit = i & -i;
         int inc = iLowBit << 1;
         for (int j = iLowBit; j < i; j += inc){
@@ -254,20 +298,30 @@ value() {
                 jComp = (i & ~j);
             }
             if (j==i) break;
-            fC[i] -= fC[j] * fQ[jComp];
+            for (int m=0; m<=nDer; m++) {
+                for (int l=0; l<=m; l++) {
+                    fC[i][m] -= binomial[m][l]*fC[j][l] * fQ[jComp][m-l];
+                }
+            }
         }
     }
     //find fA1
     for (int i = 2; i < nf; i += 2){
         //all even sets don't contain 1
-        fB[i] = fC[i];
+        for (int m=0; m<=nDer; m++) {
+            fB[i][m] = fC[i][m];
+        }
     }
-    fA[1] = 0;
-    fB[1] = fC[1];
+    for (int m=0; m<=nDer; m++) {
+        fA[1][m] = 0;
+        fB[1][m] = fC[1][m];
+    }
     for (int i = 3; i < nf; i += 2){
         //every set will contain 1
-        fA[i] = 0;
-        fB[i] = fC[i];
+        for (int m=0; m<=nDer; m++) {
+            fA[i][m] = 0;
+            fB[i][m] = fC[i][m];
+        }
         int ii = i - 1;//all bits in i but lowest
         int iLow2Bit = (ii & -ii);//next lowest bit
         int jBits = 1 | iLow2Bit;
@@ -283,15 +337,23 @@ value() {
                 jComp = (i & ~j);
             }
             if (j == i) break;
-            fA[i] += fB[j] * fC[jComp|1];
+            for (int m=0; m<=nDer; m++) {
+                for (int l=0; l<=m; l++) {
+                    fA[i][m] += binomial[m][l]*fB[j][l] * fC[jComp|1][m-l];
+                }
+            }
         }
         //remove from B graphs that contain articulation point 0.
-        fB[i] -= fA[i];
+        for (int m=0; m<=nDer; m++) {
+            fB[i][m] -= fA[i][m];
+        }
     }
     for (int v = 1; v < n; ++v){
         int vs1 = 1 << v;
         for (int i = vs1 + 1; i < nf; ++i){
-            fA[i] = 0;
+            for (int m=0; m<=nDer; m++) {
+                fA[i][m] = 0;
+            }
             if ( (i & vs1) == 0 ) continue;
             int iLowBit = (i & -i);
             if ( iLowBit == i ) continue;
@@ -317,7 +379,11 @@ value() {
                         jComp = (i & ~j);
                     }
                     if (j==i) break;
-                    fA[i] += fB[j] * (fB[jComp|vs1] + fA[jComp|vs1]);
+                    for  (int m=0; m<=nDer; m++) {
+                        for (int l=0; l<=m; l++) {
+                            fA[i][m] += binomial[m][l]*fB[j][l] * (fB[jComp|vs1][m-l] + fA[jComp|vs1][m-l]);
+                        }
+                    }
                 }
             }
             else{
@@ -336,13 +402,22 @@ value() {
                         jComp = (i & ~j);
                     }
                     if (j==i) break;
-                    fA[i] += fB[j] * (fB[jComp|vs1] + fA[jComp|vs1]);
+                    for (int m=0; m<=nDer; m++) {
+                        for  (int l=0; l<=m; l++) {
+                            fA[i][m] += binomial[m][l]*fB[j][l] * (fB[jComp|vs1][m-l] + fA[jComp|vs1][m-l]);
+                        }
+                    }
                 }
             }
-            fB[i] -= fA[i];
+            for (int m=0; m<=nDer; m++) {
+                fB[i][m] -= fA[i][m];
+            }
         }
     }
-    return preFac*fB[nf-1];
+    for (int m=0; m<=nDer; m++) {
+        ClusterSum<T>::values[m] = preFac*fB[nf-1][m];
+    }
+    return ClusterSum<T>::values;
 }
 
 }
