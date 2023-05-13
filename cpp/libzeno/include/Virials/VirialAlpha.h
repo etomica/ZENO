@@ -68,8 +68,8 @@ VirialAlpha(IntegratorMSMC<T, RandomNumberGenerator> & rIntegrator,
             ClusterSum<T> & targetClusterRef,
             ClusterSum<T> & targetClusterTarget) :
             stepCount(0), nextCheck(1000), refIntegrator(rIntegrator), targetIntegrator(tIntegrator),
-            refMeter(MeterOverlap<T>(refClusterTarget, 1, 5, 11)),
-            targetMeter(MeterOverlap<T>(targetClusterRef, 1, -5, 11)),
+            refMeter(MeterOverlap<T>(refClusterTarget, 1, 5, 11, 0)),
+            targetMeter(MeterOverlap<T>(targetClusterRef, 1, -5, 11, 0)),
             newAlpha(0), newAlphaErr(0), alphaCor(0), alphaSpan(0), allDone(false),
             verbose(false) {
     int numAlpha = refMeter.getNumAlpha();

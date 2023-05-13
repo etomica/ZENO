@@ -972,7 +972,7 @@ Zeno::doVirialSamplingThread(ParametersVirial const * parameters,
                                                                  models);
 
     ClusterSumChain<double> clusterSumRef(refIntegrator.getParticles(), refDiameter, 0.0, 1.0);
-    ClusterSumWheatleyRecursion<double> clusterSumTarget(refIntegrator.getParticles(), &potential, temperature);
+    ClusterSumWheatleyRecursion<double> clusterSumTarget(refIntegrator.getParticles(), &potential, temperature, 0);
     MCMoveChainVirial<double, RandomNumberGenerator> mcMoveChain(refIntegrator, &clusterSumRef, refDiameter);
     MCMoveRotate<double , RandomNumberGenerator> mcMoveRotateRef(refIntegrator, &clusterSumRef);
     MCMoveBondStretch<double , RandomNumberGenerator> mcMoveStretchRef(refIntegrator, &clusterSumRef, potential, temperature);
@@ -985,7 +985,7 @@ Zeno::doVirialSamplingThread(ParametersVirial const * parameters,
       if (potential.getAngleStyle() != AngleFixed) refIntegrator.addMove(&mcMoveAngleRef, 1.0);
       if (potential.getHasTorsion() && potential.getAngleStyle() != AngleNone) refIntegrator.addMove(&mcMoveTorsionRef, 1.0);
     }
-    refIntegrator.setCurrentValue(clusterSumRef.value());
+    refIntegrator.setCurrentValue(clusterSumRef.getValues());
 
     IntegratorMSMC<double, RandomNumberGenerator> targetIntegrator(threadNum,
                                                                 totalTimer,
@@ -995,7 +995,7 @@ Zeno::doVirialSamplingThread(ParametersVirial const * parameters,
                                                                 models);
 
     ClusterSumChain<double> clusterSumRefT(targetIntegrator.getParticles(), refDiameter, 0.0, 1.0);
-    ClusterSumWheatleyRecursion<double> clusterSumTargetT(targetIntegrator.getParticles(), &potential, temperature);
+    ClusterSumWheatleyRecursion<double> clusterSumTargetT(targetIntegrator.getParticles(), &potential, temperature, 0);
     MCMoveTranslate<double, RandomNumberGenerator> mcMoveTranslate(targetIntegrator, &clusterSumTargetT);
     MCMoveRotate<double , RandomNumberGenerator> mcMoveRotateTarget(targetIntegrator, &clusterSumTargetT);
     MCMoveBondStretch<double , RandomNumberGenerator> mcMoveStretchTarget(targetIntegrator, &clusterSumTargetT, potential, temperature);
@@ -1008,7 +1008,7 @@ Zeno::doVirialSamplingThread(ParametersVirial const * parameters,
       if (potential.getAngleStyle() != AngleFixed) targetIntegrator.addMove(&mcMoveAngleTarget, 1.0);
       if (potential.getHasTorsion() && potential.getAngleStyle() != AngleNone) targetIntegrator.addMove(&mcMoveTorsionTarget, 1.0);
     }
-    targetIntegrator.setCurrentValue(clusterSumTargetT.value());
+    targetIntegrator.setCurrentValue(clusterSumTargetT.getValues());
 
     VirialAlpha<double,RandomNumberGenerator> virialAlpha(refIntegrator, targetIntegrator,
             clusterSumRef, clusterSumTarget, clusterSumRefT, clusterSumTargetT);

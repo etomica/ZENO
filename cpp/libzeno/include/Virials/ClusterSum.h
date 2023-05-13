@@ -29,9 +29,17 @@ class ClusterSum {
     ClusterSum(std::vector<Particle<T> *> * particles);
     virtual ~ClusterSum();
     virtual double value() = 0;
+    virtual int numValues() {
+      return values.size();
+    }
+    virtual std::vector<double> getValues() {
+      values[0] = value();
+      return values;
+    }
 
  protected:
     std::vector<Particle<T> *> * particles;
+    std::vector<double> values;
 };
 
 ///Sub class of ClusterSum to compute cluster sum for chains.
@@ -45,9 +53,9 @@ public:
     double value();
 
 private:
-      double diameter;
-      double ringFac;
-      double chainFac;
+    double diameter;
+    double ringFac;
+    double chainFac;
 };
 
 ///Sub class of ClusterSum to compute cluster sum using Wheatley Recursion.
@@ -55,12 +63,13 @@ private:
 template <class T>
 class ClusterSumWheatleyRecursion : public ClusterSum<T>{
 public:
-    ClusterSumWheatleyRecursion(std::vector<Particle<T> *> * particles, Potential<T> const * potential, double temperature);
+    ClusterSumWheatleyRecursion(std::vector<Particle<T> *> * particles, Potential<T> const * potential, double temperature, int nDerivatives);
     ~ClusterSumWheatleyRecursion();
     double value();
 
 private:
     Potential<T> const * potential;
+    std::vector<double> derivativeValues;
     double temperature;
     double preFac;
 };
@@ -75,6 +84,7 @@ template <class T>
 ClusterSum<T>::
 ClusterSum(std::vector<Particle<T> *> * particles):
 particles(particles){
+  values.resize(1);
 }
 
 template <class T>
@@ -89,6 +99,7 @@ ClusterSumChain<T>::
 ClusterSumChain(std::vector<Particle<T> *> * particles, double diameter,
                 double ringFac, double chainFac):
         ClusterSum<T>(particles), diameter(diameter), ringFac(ringFac), chainFac(chainFac) {
+    ClusterSum<T>::values.resize(1);
 }
 
 template <class T>
@@ -172,7 +183,7 @@ value(){
 ///
 template <class T>
 ClusterSumWheatleyRecursion<T>::
-ClusterSumWheatleyRecursion(std::vector<Particle<T> *> * particles, Potential<T> const * potential, double temperature):
+ClusterSumWheatleyRecursion(std::vector<Particle<T> *> * particles, Potential<T> const * potential, double temperature, int nDerivatives):
 ClusterSum<T>(particles), potential(potential), temperature(temperature) {
     const int n = ClusterSum<T>::particles->size();
     int factorial = 1;
@@ -180,6 +191,7 @@ ClusterSum<T>(particles), potential(potential), temperature(temperature) {
         factorial *= m;
     }
     preFac = -(n - 1.0)/factorial;
+    ClusterSum<T>::values.resize(1+nDerivatives);
 }
 
 template <class T>

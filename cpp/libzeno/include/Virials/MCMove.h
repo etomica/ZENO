@@ -32,7 +32,7 @@ class MCMove {
  public:
     MCMove(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T> * clusterSum);
     virtual ~MCMove();
-    virtual double doTrial(double oldValue, bool & accepted) = 0;
+    virtual std::vector<double> doTrial(std::vector<double> oldValue, bool & accepted) = 0;
     double getStepSize();
     void setStepSize(double sS);
     bool verboseAdjust, tunable;
@@ -61,7 +61,7 @@ public:
     MCMoveTranslate(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T> * clusterSum);
     ~MCMoveTranslate();
 
-    double doTrial(double oldValue, bool & accepted);
+    std::vector<double> doTrial(std::vector<double> oldValue, bool & accepted);
 };
 
 /// Sub class of MCMove to perform a monte carlo trial for rotation.
@@ -73,7 +73,7 @@ public:
     MCMoveRotate(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T> * clusterSum);
     ~MCMoveRotate();
 
-    double doTrial(double oldValue, bool & accepted);
+    std::vector<double> doTrial(std::vector<double> oldValue, bool & accepted);
 };
 
 /// Sub class of MCMove to perform a monte carlo trial for chain move.
@@ -85,7 +85,7 @@ public:
     MCMoveChainVirial(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T> * clusterSum, double sigma);
     ~MCMoveChainVirial();
 
-    double doTrial(double oldValue, bool & accepted);
+    std::vector<double> doTrial(std::vector<double> oldValue, bool & accepted);
 protected:
     double sigma;
 };
@@ -105,7 +105,7 @@ public:
     MCMoveBondStretch(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T> * clusterSum, const Potential<T> & potential, double temperature);
     ~MCMoveBondStretch();
 
-    double doTrial(double oldValue, bool & accepted);
+    std::vector<double> doTrial(std::vector<double> oldValue, bool & accepted);
 protected:
     const Potential<T> & potential;
     double temperature;
@@ -130,7 +130,7 @@ public:
     MCMoveBondAngle(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T> * clusterSum, const Potential<T> & potential, double temperature);
     ~MCMoveBondAngle();
 
-    double doTrial(double oldValue, bool & accepted);
+    std::vector<double> doTrial(std::vector<double> oldValue, bool & accepted);
 protected:
     const Potential<T> & potential;
     double temperature;
@@ -154,7 +154,7 @@ public:
     MCMoveBondTorsion(IntegratorMSMC<T, RandomNumberGenerator> & integratorMSMC, ClusterSum<T> * clusterSum, const Potential<T> & potential, double temperature);
     ~MCMoveBondTorsion();
 
-    double doTrial(double oldValue, bool & accepted);
+    std::vector<double> doTrial(std::vector<double> oldValue, bool & accepted);
 protected:
     const Potential<T> & potential;
     double temperature;
@@ -211,13 +211,13 @@ MCMoveTranslate<T, RandomNumberGenerator>::
 ///
 template <class T,
         class RandomNumberGenerator>
-double MCMoveTranslate<T, RandomNumberGenerator>::
-doTrial(double oldValue, bool & accepted){
+std::vector<double> MCMoveTranslate<T, RandomNumberGenerator>::
+doTrial(std::vector<double> oldValue, bool & accepted){
     MCMove<T, RandomNumberGenerator>::numTrials++;
     if (MCMove<T, RandomNumberGenerator>::tunable && MCMove<T, RandomNumberGenerator>::numTrials >= MCMove<T, RandomNumberGenerator>::adjustInterval) {
         MCMove<T, RandomNumberGenerator>::adjustStepSize();
     }
-    if(oldValue == 0){
+    if(oldValue[0] == 0){
         std::cerr << "Old Value is zero " << std::endl;
         exit(1);
     }
@@ -230,8 +230,8 @@ doTrial(double oldValue, bool & accepted){
         }
         MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j+1)->translateBy(step[j]);
     }
-    double newValue = MCMove<T, RandomNumberGenerator>::clusterSum->value();
-    double ratio = newValue / oldValue;
+    std::vector<double> newValue = MCMove<T, RandomNumberGenerator>::clusterSum->getValues();
+    double ratio = newValue[0] / oldValue[0];
     ratio = std::abs(ratio);
     MCMove<T, RandomNumberGenerator>::chiSum += std::min(1.0, ratio);
     accepted = (ratio > 1) || (ratio > MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomNumberGenerator()->getRandIn01());
@@ -267,13 +267,13 @@ MCMoveRotate<T, RandomNumberGenerator>::
 /// Perform a monte carlo trial for rotation.
 ///
 template <class T, class RandomNumberGenerator>
-double MCMoveRotate<T, RandomNumberGenerator>::
-doTrial(double oldValue, bool & accepted){
+std::vector<double> MCMoveRotate<T, RandomNumberGenerator>::
+doTrial(std::vector<double> oldValue, bool & accepted){
     MCMove<T, RandomNumberGenerator>::numTrials++;
     if (MCMove<T, RandomNumberGenerator>::tunable && MCMove<T, RandomNumberGenerator>::numTrials >= MCMove<T, RandomNumberGenerator>::adjustInterval) {
         MCMove<T, RandomNumberGenerator>::adjustStepSize();
     }
-    if(oldValue == 0){
+    if(oldValue[0] == 0){
         std::cerr << "Old Value is zero " << std::endl;
         exit(1);
     }
@@ -285,11 +285,11 @@ doTrial(double oldValue, bool & accepted){
         MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomUtilities()->setRandomOnSphere(&axis[j]);
         MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j)->rotateBy(axis[j], angle[j]);
     }
-    double newValue = oldValue;
+    std::vector<double> newValue = oldValue;
     if(MCMove<T, RandomNumberGenerator>::clusterSum != NULL) {
-        newValue = MCMove<T, RandomNumberGenerator>::clusterSum->value();
+        newValue = MCMove<T, RandomNumberGenerator>::clusterSum->getValues();
     }
-    double ratio = newValue / oldValue;
+    double ratio = newValue[0] / oldValue[0];
     ratio = std::abs(ratio);
     MCMove<T, RandomNumberGenerator>::chiSum += std::min(1.0, ratio);
 
@@ -322,8 +322,8 @@ MCMoveChainVirial<T, RandomNumberGenerator>::
 /// Perform a monte carlo trial for chain move.
 ///
 template <class T, class RandomNumberGenerator>
-double MCMoveChainVirial<T, RandomNumberGenerator>::
-doTrial(double oldValue, bool & accepted) {
+std::vector<double> MCMoveChainVirial<T, RandomNumberGenerator>::
+doTrial(std::vector<double> oldValue, bool & accepted) {
     MCMove<T, RandomNumberGenerator>::numTrials++;
     const Vector3<T> rPrev = MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(0)->getCenter();
     Vector3<T> sPrev = rPrev;
@@ -337,7 +337,7 @@ doTrial(double oldValue, bool & accepted) {
         sPrev = s;
     }
     MCMove<T, RandomNumberGenerator>::chiSum += 1;
-    return MCMove<T, RandomNumberGenerator>::clusterSum->value();
+    return MCMove<T, RandomNumberGenerator>::clusterSum->getValues();
 }
 
 /// Constructs a sub class of MCMove to perform a monte carlo trial for bond stretch move.
@@ -359,13 +359,13 @@ MCMoveBondStretch<T, RandomNumberGenerator>::
 /// Perform a monte carlo trial for chain move.
 ///
 template <class T, class RandomNumberGenerator>
-double MCMoveBondStretch<T, RandomNumberGenerator>::
-doTrial(double oldValue, bool & accepted) {
+std::vector<double> MCMoveBondStretch<T, RandomNumberGenerator>::
+doTrial(std::vector<double> oldValue, bool & accepted) {
     MCMove<T, RandomNumberGenerator>::numTrials++;
     if (MCMove<T, RandomNumberGenerator>::tunable && MCMove<T, RandomNumberGenerator>::numTrials >= MCMove<T, RandomNumberGenerator>::adjustInterval) {
         MCMove<T, RandomNumberGenerator>::adjustStepSize();
     }
-    if(oldValue == 0) {
+    if(oldValue[0] == 0) {
         std::cerr << "Old Value is zero " << std::endl;
         exit(1);
     }
@@ -406,11 +406,11 @@ doTrial(double oldValue, bool & accepted) {
         }
         uNew += potential.energy1(particle);
     }
-    double newValue = oldValue;
+    std::vector<double> newValue = oldValue;
     if(MCMove<T, RandomNumberGenerator>::clusterSum != NULL) {
-        newValue = MCMove<T, RandomNumberGenerator>::clusterSum->value();
+        newValue = MCMove<T, RandomNumberGenerator>::clusterSum->getValues();
     }
-    double ratio = newValue / oldValue * std::exp(-(uNew-uOld)/temperature);
+    double ratio = newValue[0] / oldValue[0] * std::exp(-(uNew-uOld)/temperature);
     ratio = std::abs(ratio);
     MCMove<T, RandomNumberGenerator>::chiSum += std::min(1.0, ratio);
 
@@ -490,14 +490,14 @@ MCMoveBondAngle<T, RandomNumberGenerator>::
 /// Perform a monte carlo trial for angle bending move.
 ///
 template <class T, class RandomNumberGenerator>
-double MCMoveBondAngle<T, RandomNumberGenerator>::
-doTrial(double oldValue, bool & accepted) {
+std::vector<double> MCMoveBondAngle<T, RandomNumberGenerator>::
+doTrial(std::vector<double> oldValue, bool & accepted) {
   //std::cout << "angle doTrial" << std::endl;
     MCMove<T, RandomNumberGenerator>::numTrials++;
     if (MCMove<T, RandomNumberGenerator>::tunable && MCMove<T, RandomNumberGenerator>::numTrials >= MCMove<T, RandomNumberGenerator>::adjustInterval) {
         MCMove<T, RandomNumberGenerator>::adjustStepSize();
     }
-    if(oldValue == 0) {
+    if(oldValue[0] == 0) {
         std::cerr << "Old Value is zero " << std::endl;
         exit(1);
     }
@@ -542,11 +542,11 @@ doTrial(double oldValue, bool & accepted) {
         }
         uNew += potential.energy1(particle);
     }
-    double newValue = oldValue;
+    std::vector<double> newValue = oldValue;
     if(MCMove<T, RandomNumberGenerator>::clusterSum != NULL) {
-        newValue = MCMove<T, RandomNumberGenerator>::clusterSum->value();
+        newValue = MCMove<T, RandomNumberGenerator>::clusterSum->getValues();
     }
-    double ratio = newValue / oldValue * std::exp(-(uNew-uOld)/temperature);
+    double ratio = newValue[0] / oldValue[0] * std::exp(-(uNew-uOld)/temperature);
     ratio = std::abs(ratio);
     MCMove<T, RandomNumberGenerator>::chiSum += std::min(1.0, ratio);
 
@@ -627,14 +627,14 @@ MCMoveBondTorsion<T, RandomNumberGenerator>::
 /// Perform a monte carlo trial for angle bending move.
 ///
 template <class T, class RandomNumberGenerator>
-double MCMoveBondTorsion<T, RandomNumberGenerator>::
-doTrial(double oldValue, bool & accepted) {
+std::vector<double> MCMoveBondTorsion<T, RandomNumberGenerator>::
+doTrial(std::vector<double> oldValue, bool & accepted) {
   //std::cout << "torsion doTrial" << std::endl;
     MCMove<T, RandomNumberGenerator>::numTrials++;
     if (MCMove<T, RandomNumberGenerator>::tunable && MCMove<T, RandomNumberGenerator>::numTrials >= MCMove<T, RandomNumberGenerator>::adjustInterval) {
         MCMove<T, RandomNumberGenerator>::adjustStepSize();
     }
-    if(oldValue == 0) {
+    if(oldValue[0] == 0) {
         std::cerr << "Old Value is zero " << std::endl;
         exit(1);
     }
@@ -675,11 +675,11 @@ doTrial(double oldValue, bool & accepted) {
         }
         uNew += potential.energy1(particle);
     }
-    double newValue = oldValue;
+    std::vector<double> newValue = oldValue;
     if(MCMove<T, RandomNumberGenerator>::clusterSum != NULL) {
-        newValue = MCMove<T, RandomNumberGenerator>::clusterSum->value();
+        newValue = MCMove<T, RandomNumberGenerator>::clusterSum->getValues();
     }
-    double ratio = newValue / oldValue * std::exp(-(uNew-uOld)/temperature);
+    double ratio = newValue[0] / oldValue[0] * std::exp(-(uNew-uOld)/temperature);
     ratio = std::abs(ratio);
     MCMove<T, RandomNumberGenerator>::chiSum += std::min(1.0, ratio);
 

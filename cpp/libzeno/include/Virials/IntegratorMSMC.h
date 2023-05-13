@@ -50,7 +50,7 @@ class IntegratorMSMC {
   RandomUtilities<T, RandomNumberGenerator> * getRandomUtilities();
   void addMove(MCMove<T, RandomNumberGenerator> * mcMove, double moveProb);
   void setMeter(MeterOverlap<T> * meter);
-  void setCurrentValue(double currentValue);
+  void setCurrentValue(std::vector<double> currentValue);
   void setEquilibrationFinished();
 private:
   int threadNum;
@@ -63,7 +63,7 @@ private:
   std::vector<double> moveProbs;
   RandomUtilities<T, RandomNumberGenerator> randomUtilities;
   MeterOverlap<T> * meterOverlap;
-  double currentValue;
+  std::vector<double> currentValue;
 };
 
 #include "Virials/IntegratorMSMC.h"
@@ -86,7 +86,7 @@ IntegratorMSMC(int threadNum,
               totalTimer(totalTimer),
               randomNumberGenerator(randomNumberGenerator),
               boundingSpheres(boundingSpheres),
-              numParticles(numParticles), randomUtilities(randomNumberGenerator), currentValue(0){
+              numParticles(numParticles), randomUtilities(randomNumberGenerator) {
     for(unsigned int i = 0; i < numParticles.size(); ++i)
     {
         for (int j =0; j < numParticles[i]; ++j)
@@ -94,6 +94,7 @@ IntegratorMSMC(int threadNum,
             particles.push_back(new Particle<T> (* models[i], * boundingSpheres[i]));
         }
     }
+    currentValue.push_back(0);
 
 }
 
@@ -191,7 +192,7 @@ template <class T,
         class RandomNumberGenerator>
 void
 IntegratorMSMC<T, RandomNumberGenerator>::
-setCurrentValue(double currentValue) {
+setCurrentValue(std::vector<double> currentValue) {
     this->currentValue = currentValue;
 }
 
