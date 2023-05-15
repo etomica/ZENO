@@ -57,6 +57,7 @@ const char *gengetopt_args_info_help[] = {
   "      --virial-coefficient-order=INT\n                                Order of virial coefficient to compute",
   "      --virial-reference-diameter=DOUBLE\n                                Virial coefficient reference diameter",
   "      --temperature=DOUBLE      Temperature",
+  "      --num-derivatives=INT     Number of virial coefficient temperature\n                                  derivates to compute  (default=`0')",
     0
 };
 
@@ -132,6 +133,7 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->virial_coefficient_order_given = 0 ;
   args_info->virial_reference_diameter_given = 0 ;
   args_info->temperature_given = 0 ;
+  args_info->num_derivatives_given = 0 ;
 }
 
 static
@@ -164,6 +166,8 @@ void clear_args (struct gengetopt_args_info *args_info)
   args_info->virial_coefficient_order_orig = NULL;
   args_info->virial_reference_diameter_orig = NULL;
   args_info->temperature_orig = NULL;
+  args_info->num_derivatives_arg = 0;
+  args_info->num_derivatives_orig = NULL;
   
 }
 
@@ -195,6 +199,7 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->virial_coefficient_order_help = gengetopt_args_info_help[20] ;
   args_info->virial_reference_diameter_help = gengetopt_args_info_help[21] ;
   args_info->temperature_help = gengetopt_args_info_help[22] ;
+  args_info->num_derivatives_help = gengetopt_args_info_help[23] ;
   
 }
 
@@ -308,6 +313,7 @@ cmdline_parser_release (struct gengetopt_args_info *args_info)
   free_string_field (&(args_info->virial_coefficient_order_orig));
   free_string_field (&(args_info->virial_reference_diameter_orig));
   free_string_field (&(args_info->temperature_orig));
+  free_string_field (&(args_info->num_derivatives_orig));
   
   
 
@@ -384,6 +390,8 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "virial-reference-diameter", args_info->virial_reference_diameter_orig, 0);
   if (args_info->temperature_given)
     write_into_file(outfile, "temperature", args_info->temperature_orig, 0);
+  if (args_info->num_derivatives_given)
+    write_into_file(outfile, "num-derivatives", args_info->num_derivatives_orig, 0);
   
 
   i = EXIT_SUCCESS;
@@ -703,6 +711,7 @@ cmdline_parser_internal (
         { "virial-coefficient-order",	1, NULL, 0 },
         { "virial-reference-diameter",	1, NULL, 0 },
         { "temperature",	1, NULL, 0 },
+        { "num-derivatives",	1, NULL, 0 },
         { 0,  0, 0, 0 }
       };
 
@@ -1010,6 +1019,20 @@ cmdline_parser_internal (
                 &(local_args_info.temperature_given), optarg, 0, 0, ARG_DOUBLE,
                 check_ambiguity, override, 0, 0,
                 "temperature", '-',
+                additional_error))
+              goto failure;
+          
+          }
+          /* Number of virial coefficient temperature derivates to compute.  */
+          else if (strcmp (long_options[option_index].name, "num-derivatives") == 0)
+          {
+          
+          
+            if (update_arg( (void *)&(args_info->num_derivatives_arg), 
+                 &(args_info->num_derivatives_orig), &(args_info->num_derivatives_given),
+                &(local_args_info.num_derivatives_given), optarg, 0, "0", ARG_INT,
+                check_ambiguity, override, 0, 0,
+                "num-derivatives", '-',
                 additional_error))
               goto failure;
           

@@ -59,6 +59,10 @@ public:
   double getTemperature() const;
   bool getTemperatureWasSet() const;
 
+  void setNumDerivatives(int numDerivatives);
+  int getNumDerivatives() const;
+  bool getNumDerivativesWasSet() const;
+
   void mpiBroadcast(int root);
 
 private:
@@ -79,6 +83,9 @@ private:
 
   double temperature;
   bool temperatureWasSet;
+
+  double numDerivatives;
+  bool numDerivativesWasSet;
 
   int order;
   bool orderWasSet;

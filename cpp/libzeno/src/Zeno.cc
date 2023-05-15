@@ -964,6 +964,7 @@ Zeno::doVirialSamplingThread(ParametersVirial const * parameters,
     std::vector<Model const *> models;
     models.push_back(&model);
     double temperature = parameters->getTemperature();
+    int numDerivatives = parameters->getNumDerivatives();
     IntegratorMSMC<double, RandomNumberGenerator> refIntegrator(threadNum,
                                                                  totalTimer,
                                                                  randomNumberGenerator,
@@ -995,7 +996,7 @@ Zeno::doVirialSamplingThread(ParametersVirial const * parameters,
                                                                 models);
 
     ClusterSumChain<double> clusterSumRefT(targetIntegrator.getParticles(), refDiameter, 0.0, 1.0);
-    ClusterSumWheatleyRecursion<double> clusterSumTargetT(targetIntegrator.getParticles(), &potential, temperature, 0);
+    ClusterSumWheatleyRecursion<double> clusterSumTargetT(targetIntegrator.getParticles(), &potential, temperature, numDerivatives);
     MCMoveTranslate<double, RandomNumberGenerator> mcMoveTranslate(targetIntegrator, &clusterSumTargetT);
     MCMoveRotate<double , RandomNumberGenerator> mcMoveRotateTarget(targetIntegrator, &clusterSumTargetT);
     MCMoveBondStretch<double , RandomNumberGenerator> mcMoveStretchTarget(targetIntegrator, &clusterSumTargetT, potential, temperature);

@@ -55,6 +55,8 @@ ParametersVirial::ParametersVirial()
     referenceDiameterWasSet(false),
     temperature(1),
     temperatureWasSet(false),
+    numDerivatives(0),
+    numDerivativesWasSet(false),
     order(),
     orderWasSet(false) {
 
@@ -150,6 +152,23 @@ ParametersVirial::getTemperature() const {
 bool
 ParametersVirial::getTemperatureWasSet() const {
   return temperatureWasSet;
+}
+
+void
+ParametersVirial::setNumDerivatives(int numDerivatvies) {
+  this->numDerivatives = numDerivatvies;
+
+  numDerivativesWasSet = true;
+}
+
+int
+ParametersVirial::getNumDerivatives() const {
+  return numDerivatives;
+}
+
+bool
+ParametersVirial::getNumDerivativesWasSet() const {
+  return numDerivativesWasSet;
 }
 
 void 

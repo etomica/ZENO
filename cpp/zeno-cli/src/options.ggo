@@ -105,3 +105,6 @@ double optional
 
 option "temperature" - "Temperature"
 double optional
+
+option "num-derivatives" - "Number of virial coefficient temperature derivates to compute"
+int default="0" optional

@@ -663,6 +663,10 @@ parseCommandLine(int argc, char **argv,
     parametersVirial->setTemperature(args_info.temperature_arg);
   }
 
+  if (args_info.num_derivatives_given) {
+    parametersVirial->setNumDerivatives(args_info.num_derivatives_arg);
+  }
+
   parametersLocal->setPrintCounts(args_info.print_counts_given);
   parametersLocal->setPrintBenchmarks(args_info.print_benchmarks_given);
 
@@ -1185,6 +1189,12 @@ printParameters(ParametersWalkOnSpheres const & parametersWalkOnSpheres,
   if (parametersVirial.getStepsWasSet()) {
     printExactScalar("Virial steps", "virial_steps", "",
 		     parametersVirial.getSteps(),
+		     csvItems);
+  }
+
+  if (parametersVirial.getNumDerivativesWasSet()) {
+    printExactScalar("Number of derivatvies", "num_derivatives", "",
+		     parametersVirial.getNumDerivatives(),
 		     csvItems);
   }
 

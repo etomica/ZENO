@@ -118,6 +118,9 @@ struct gengetopt_args_info
   double temperature_arg;	/**< @brief Temperature.  */
   char * temperature_orig;	/**< @brief Temperature original value given at command line.  */
   const char *temperature_help; /**< @brief Temperature help description.  */
+  int num_derivatives_arg;	/**< @brief Number of virial coefficient temperature derivates to compute (default='0').  */
+  char * num_derivatives_orig;	/**< @brief Number of virial coefficient temperature derivates to compute original value given at command line.  */
+  const char *num_derivatives_help; /**< @brief Number of virial coefficient temperature derivates to compute help description.  */
   
   unsigned int help_given ;	/**< @brief Whether help was given.  */
   unsigned int version_given ;	/**< @brief Whether version was given.  */
@@ -142,6 +145,7 @@ struct gengetopt_args_info
   unsigned int virial_coefficient_order_given ;	/**< @brief Whether virial-coefficient-order was given.  */
   unsigned int virial_reference_diameter_given ;	/**< @brief Whether virial-reference-diameter was given.  */
   unsigned int temperature_given ;	/**< @brief Whether temperature was given.  */
+  unsigned int num_derivatives_given ;	/**< @brief Whether num-derivatives was given.  */
 
 } ;
 
