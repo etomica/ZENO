@@ -222,7 +222,7 @@ getValues() {
     double fA[nf][nDer+1], fB[nf][nDer+1];
     double binomial[nDer+1][nDer+1];
     int factorial[nDer+1];
-    factorial[1] = 1;
+    factorial[0] = factorial[1] = 1;
     for (int m=2; m<=nDer; m++) {
         factorial[m] = factorial[m-1]*m;
     }
@@ -234,6 +234,7 @@ getValues() {
     for(int iMol1 = 0; iMol1 < n; ++iMol1){
         int i = 1 << iMol1;
         fQ[i][0] = 1.0;
+        for (int m=1; m<=nDer; m++) fQ[i][m] = 0;
         for(int iMol2 = iMol1 + 1; iMol2 < n; ++iMol2){
             double u = potential->energy2(ClusterSum<T>::particles->at(iMol1), ClusterSum<T>::particles->at(iMol2));
             double e = std::exp(-u/temperature);
