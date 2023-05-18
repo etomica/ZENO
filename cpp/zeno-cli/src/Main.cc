@@ -1269,8 +1269,10 @@ printResults(Results const & results,
 		     results.refFrac.value,
 		     csvItems);
 
-    printScalar(results.virialCoefficient,
-		csvItems);
+    for (int iValue = 0; iValue < (int)results.virialCoefficient.size(); iValue++) {
+      printScalar(results.virialCoefficient[iValue],
+		  csvItems);
+    }
 
     std::cout << std::endl;
   }

@@ -875,6 +875,7 @@ Zeno::getVirialResults
   for (int i=2; i<=parametersVirial.getOrder(); i++) nFactorial *= i;
   double refIntegral = nFactorial*std::pow(4.0*M_PI*refDiameter*refDiameter*refDiameter/3.0,parametersVirial.getOrder()-1)/2;
   *resultsVirial = new ResultsVirial(parametersVirial.getNumThreads(),
+                                     parametersVirial.getNumDerivatives()+1,
                                      refIntegral);
 
   doVirialSampling(parametersVirial,
@@ -1030,5 +1031,7 @@ Zeno::doVirialSamplingThread(ParametersVirial const * parameters,
 
     resultsVirial->putData(threadNum, virialProduction.getRefMeter(), virialProduction.getTargetMeter());
     resultsVirial->putOverlapRatio(threadNum, virialProduction.getAlphaStats()[0], std::pow(virialProduction.getAlphaStats()[1],2));
-    resultsVirial->putVirialCoefficient(threadNum, virialProduction.getFullStats()[0][0], std::pow(virialProduction.getFullStats()[0][1],2));
+    for (int iDer = 0; iDer <= numDerivatives; iDer++) {
+        resultsVirial->putVirialCoefficient(threadNum, iDer, virialProduction.getFullStats()[iDer][0], std::pow(virialProduction.getFullStats()[iDer][1],2));
+    }
 }

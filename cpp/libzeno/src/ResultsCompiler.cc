@@ -44,6 +44,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <iostream>
+#include <sstream>
 #include <iomanip>
 #include <thread>
 
@@ -285,13 +286,18 @@ ResultsCompiler::compile(ResultsZeno const * resultsZeno,
   }
 
   if (resultsVirial != NULL) {
-      Uncertain<double> v = resultsVirial->getVirialCoefficientReduced();
-      Result<Uncertain<double> >
-        result("Virial coefficient",
-	       "virial_coefficient",
-	       v,
-	       Units::getName(parameters->getLengthScaleUnit()) + "^3");
-      results->virialCoefficient = result;
+      int numValues = resultsVirial->getNumValues();
+      for (int iValue = 0; iValue < numValues; iValue++) {
+          Uncertain<double> v = resultsVirial->getVirialCoefficientReduced(iValue);
+          std::stringstream name;
+          name << "Virial coefficient " << iValue;
+          Result<Uncertain<double> >
+            result(name.str(),
+	           "virial_coefficient",
+	           v,
+	           Units::getName(parameters->getLengthScaleUnit()) + "^3");
+          results->virialCoefficient.push_back(result);
+      }
 
       Result<double>
         resultRefFrac("Fraction of steps in reference",
