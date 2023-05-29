@@ -75,6 +75,21 @@ private:
     double preFac;
 };
 
+///Sub class of ClusterSum to compute cluster sum using direct enumeration
+/// of diagrams including connected diagrams for flexible molecules
+///
+template <class T>
+class ClusterSumFlexible : public ClusterSum<T>{
+public:
+    ClusterSumFlexible(std::vector<Particle<T> *> * particles, Potential<T> const * potential, double temperature);
+    ~ClusterSumFlexible();
+    double value();
+
+private:
+    Potential<T> const * potential;
+    double temperature;
+};
+
 
 /// Constructs the class to compute cluster sum.
 ///
@@ -419,6 +434,60 @@ getValues() {
         ClusterSum<T>::values[m] = preFac*fB[nf-1][m];
     }
     return ClusterSum<T>::values;
+}
+
+/// Constructs a sub class of ClusterSum to compute cluster sum for
+/// flexible molecules
+///
+template <class T>
+ClusterSumFlexible<T>::
+ClusterSumFlexible(std::vector<Particle<T> *> * particles, Potential<T> const * potential, double temperature):
+        ClusterSum<T>(particles), potential(potential), temperature(temperature) {
+    ClusterSum<T>::values.resize(1);
+}
+
+template <class T>
+ClusterSumFlexible<T>::
+~ClusterSumFlexible() {
+}
+
+/// Computes cluster sum for chains.
+///
+template <class T>
+double
+ClusterSumFlexible<T>::
+value(){
+    const int n = ClusterSum<T>::particles->size();
+    const int nf = (1 << n);
+    double f[nf];
+    for(int iMol1 = 0; iMol1 < n; ++iMol1){
+        int i = 1 << iMol1;
+        f[i] = 1.0;
+        for(int iMol2 = iMol1 + 1; iMol2 < n; ++iMol2){
+            double u = potential->energy2(ClusterSum<T>::particles->at(iMol1), ClusterSum<T>::particles->at(iMol2));
+            double x = -u/temperature;
+            double fij = 0;
+            if (std::fabs(x) < 0.01) {
+                fij = x + x*x/2.0 + x*x*x/6.0 + x*x*x*x/24.0 + x*x*x*x*x/120.0;
+            }
+            else {
+                fij = std::exp(x) - 1;
+            }
+            int ij = i|(1<<iMol2);
+            f[ij] = fij;
+        }
+    }
+    if (n == 2) {
+        return -0.5*f[1|2];
+    }
+    else if (n == 3) {
+        double triangle = -1.0/3.0 * f[1|2]*f[1|4]*f[2|4];
+        double chain1 = -1.0/3.0 * f[1|2]*f[1|4];
+        double chain2 = -1.0/3.0 * f[1|2]*f[2|4];
+        double chain4 = -1.0/3.0 * f[1|4]*f[2|4];
+        return triangle + chain1 + chain2 + chain4;
+    }
+    std::cerr << "Flexible diagrams only known for n = 2, 3" << std::endl;
 }
 
 }
