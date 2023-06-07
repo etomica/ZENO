@@ -156,7 +156,7 @@ Potential<T>::Potential()
 
 template <class T>
 Potential<T>::Potential(const Potential &p) : empty(true),
-                                           hasTorsion(true),
+                                           hasTorsion(false),
                                            bondStyle(p.getBondStyle()),
                                            angleStyle(p.getAngleStyle()),
                                            nonbondStyle(p.getNonbondStyle()),
