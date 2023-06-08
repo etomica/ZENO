@@ -28,14 +28,10 @@ class ClusterSum {
  public:
     ClusterSum(std::vector<Particle<T> *> * particles);
     virtual ~ClusterSum();
-    virtual double value() = 0;
     virtual int numValues() {
       return values.size();
     }
-    virtual std::vector<double> getValues() {
-      values[0] = value();
-      return values;
-    }
+    virtual std::vector<double> getValues() = 0;
 
  protected:
     std::vector<Particle<T> *> * particles;
@@ -50,7 +46,7 @@ class ClusterSumChain : public ClusterSum<T> {
 public:
     ClusterSumChain(std::vector<Particle<T> *> * particles, double diameter, double ringFac, double chainFac);
     ~ClusterSumChain();
-    double value();
+    std::vector<double> getValues();
 
 private:
     double diameter;
@@ -65,7 +61,6 @@ class ClusterSumWheatleyRecursion : public ClusterSum<T>{
 public:
     ClusterSumWheatleyRecursion(std::vector<Particle<T> *> * particles, Potential<T> const * potential, double temperature, int nDerivatives);
     ~ClusterSumWheatleyRecursion();
-    double value();
     virtual std::vector<double> getValues();
 
 private:
@@ -83,7 +78,7 @@ class ClusterSumFlexible : public ClusterSum<T>{
 public:
     ClusterSumFlexible(std::vector<Particle<T> *> * particles, Potential<T> const * potential, double temperature);
     ~ClusterSumFlexible();
-    double value();
+    virtual std::vector<double> getValues();
 
 private:
     Potential<T> const * potential;
@@ -100,7 +95,7 @@ template <class T>
 ClusterSum<T>::
 ClusterSum(std::vector<Particle<T> *> * particles):
 particles(particles){
-  values.resize(1);
+  values.resize(2);
 }
 
 template <class T>
@@ -115,7 +110,6 @@ ClusterSumChain<T>::
 ClusterSumChain(std::vector<Particle<T> *> * particles, double diameter,
                 double ringFac, double chainFac):
         ClusterSum<T>(particles), diameter(diameter), ringFac(ringFac), chainFac(chainFac) {
-    ClusterSum<T>::values.resize(1);
 }
 
 template <class T>
@@ -126,9 +120,9 @@ ClusterSumChain<T>::
 /// Computes cluster sum for chains.
 ///
 template <class T>
-double
+std::vector<double>
 ClusterSumChain<T>::
-value(){
+getValues(){
     const int n = ClusterSum<T>::particles->size();
     const int nf1 = (1 << (n - 1));
     double fValues[n][n];
@@ -192,7 +186,9 @@ value(){
             chainValue += nC[m][nf1-1];
         }
     }//end if(chainFrac)
-    return chainFac*chainValue + ringFac*ringValue;
+    ClusterSum<T>::values[0] = chainFac*chainValue + ringFac*ringValue;
+    ClusterSum<T>::values[1] = ClusterSum<T>::values[0];
+    return ClusterSum<T>::values;
 }
 
 /// Constucts a sub class of ClusterSum to compute cluster sum using Wheatley Recursion.
@@ -207,21 +203,12 @@ ClusterSum<T>(particles), potential(potential), temperature(temperature) {
         factorial *= m;
     }
     preFac = -(n - 1.0)/factorial;
-    ClusterSum<T>::values.resize(1+nDerivatives);
+    ClusterSum<T>::values.resize(2+nDerivatives);
 }
 
 template <class T>
 ClusterSumWheatleyRecursion<T>::
 ~ClusterSumWheatleyRecursion() {
-}
-
-/// Computes cluster sum using Wheatley Recursion.
-///
-template <class T>
-double
-ClusterSumWheatleyRecursion<T>::
-value() {
-    return getValues()[0];
 }
 
 /// Computes cluster sum using Wheatley Recursion.
@@ -431,8 +418,9 @@ getValues() {
         }
     }
     for (int m=0; m<=nDer; m++) {
-        ClusterSum<T>::values[m] = preFac*fB[nf-1][m];
+        ClusterSum<T>::values[1+m] = preFac*fB[nf-1][m];
     }
+    ClusterSum<T>::values[0] = ClusterSum<T>::values[1];
     return ClusterSum<T>::values;
 }
 
@@ -443,7 +431,11 @@ template <class T>
 ClusterSumFlexible<T>::
 ClusterSumFlexible(std::vector<Particle<T> *> * particles, Potential<T> const * potential, double temperature):
         ClusterSum<T>(particles), potential(potential), temperature(temperature) {
-    ClusterSum<T>::values.resize(1);
+    if (ClusterSum<T>::values.size() > 3) {
+        std::cerr << "Flexible diagrams only implemented for n = 2, 3" << std::endl;
+        exit(1);
+    }
+    ClusterSum<T>::values.resize(particles->size() == 2 ? 2 : 3);
 }
 
 template <class T>
@@ -454,9 +446,9 @@ ClusterSumFlexible<T>::
 /// Computes cluster sum for chains.
 ///
 template <class T>
-double
+std::vector<double>
 ClusterSumFlexible<T>::
-value(){
+getValues(){
     const int n = ClusterSum<T>::particles->size();
     const int nf = (1 << n);
     double f[nf];
@@ -478,16 +470,19 @@ value(){
         }
     }
     if (n == 2) {
-        return -0.5*f[1|2];
+        ClusterSum<T>::values[1] = -0.5*f[1|2];
+        ClusterSum<T>::values[0] = ClusterSum<T>::values[1];
     }
     else if (n == 3) {
         double triangle = -1.0/3.0 * f[1|2]*f[1|4]*f[2|4];
         double chain1 = -1.0/3.0 * f[1|2]*f[1|4];
         double chain2 = -1.0/3.0 * f[1|2]*f[2|4];
         double chain4 = -1.0/3.0 * f[1|4]*f[2|4];
-        return triangle + chain1 + chain2 + chain4;
+        ClusterSum<T>::values[1] = triangle;
+        ClusterSum<T>::values[2] = chain1 + chain2 + chain4;
+        ClusterSum<T>::values[0] = triangle + chain1 + chain2 + chain4;
     }
-    std::cerr << "Flexible diagrams only known for n = 2, 3" << std::endl;
+    return ClusterSum<T>::values;
 }
 
 }

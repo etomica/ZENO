@@ -298,6 +298,8 @@ ResultsCompiler::compile(ResultsZeno const * resultsZeno,
 	           Units::getName(parameters->getLengthScaleUnit()) + "^3");
           results->virialCoefficient.push_back(result);
       }
+      // flex B3
+      // Flexible correction + 2B2^2: 2334.5 +/- uncertainty
 
       Result<double>
         resultRefFrac("Fraction of steps in reference",

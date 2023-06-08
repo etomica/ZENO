@@ -271,11 +271,11 @@ collectData(std::vector<double> primaryValue, bool accepted) {
         exit(1);
     }
     if(accepted || perturbValue == -1){
-        perturbValue = std::abs(clusterSumPerturb.value());
+        perturbValue = std::abs(clusterSumPerturb.getValues()[0]);
     }
     if (numAlpha == 1) {
         for (int i=0; i<numValues; i++) {
-            data[i] = primaryValue[i] / pi;
+            data[i] = primaryValue[1+i] / pi;
         }
         data[numValues] = perturbValue / (perturbValue + alpha[0] * pi);
     } else {
