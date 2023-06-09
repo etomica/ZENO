@@ -226,7 +226,6 @@ Zeno::doVirialSampling
  
   getVirialResults(numStepsInProcess,
 		   *parametersVirial,
-		   *parametersResults,
 		   boundingSphere,
 		   model,
 		   potential,
@@ -241,6 +240,10 @@ Zeno::getResults(ParametersResults * parametersResults,
 		 Results * results) const {
 
   computeDefaultParameters(parametersResults);
+
+  if (potential.getFlexible()) {
+      parametersResults->setVirialFlexible();
+  }
   
   ResultsCompiler resultsCompiler(*parametersResults);
 
@@ -863,7 +866,6 @@ void
 Zeno::getVirialResults
 (long long numStepsInProcess,
  ParametersVirial const & parametersVirial,
- ParametersResults const & parametersResults,
  BoundingSphere const & boundingSphere,
  Model const & model,
  Potential<double> const & potential,
@@ -874,9 +876,13 @@ Zeno::getVirialResults
   int nFactorial = 1;
   for (int i=2; i<=parametersVirial.getOrder(); i++) nFactorial *= i;
   double refIntegral = nFactorial*std::pow(4.0*M_PI*refDiameter*refDiameter*refDiameter/3.0,parametersVirial.getOrder()-1)/2;
+  int nVirialValues = potential.getFlexible() ?
+       (parametersVirial.getOrder() == 2 ? 1 : 2) :
+       (parametersVirial.getNumDerivatives()+1);
   *resultsVirial = new ResultsVirial(parametersVirial.getNumThreads(),
-                                     parametersVirial.getNumDerivatives()+1,
+                                     nVirialValues,
                                      refIntegral);
+  (*resultsVirial)->setOrder(parametersVirial.getOrder());
 
   doVirialSampling(parametersVirial,
                    numStepsInProcess,
@@ -982,13 +988,12 @@ Zeno::doVirialSamplingThread(ParametersVirial const * parameters,
     MCMoveBondAngle<double , RandomNumberGenerator> mcMoveAngleRef(refIntegrator, &clusterSumRef, potential, temperature);
     MCMoveBondTorsion<double , RandomNumberGenerator> mcMoveTorsionRef(refIntegrator, &clusterSumRef, potential, temperature);
     refIntegrator.addMove(&mcMoveChain, 1.0);
-    bool flexModel = false;
+    bool flexModel = potential.getFlexible();
     if (model.getSpheres()->size() > 1) {
       refIntegrator.addMove(&mcMoveRotateRef, 1.0);
       if (potential.getBondStyle() != Fixed) refIntegrator.addMove(&mcMoveStretchRef, 1.0);
       if (potential.getAngleStyle() != AngleFixed) refIntegrator.addMove(&mcMoveAngleRef, 1.0);
       if (potential.getHasTorsion() && potential.getAngleStyle() != AngleNone) refIntegrator.addMove(&mcMoveTorsionRef, 1.0);
-      flexModel = potential.getBondStyle() != Fixed || potential.getAngleStyle() != AngleFixed || (potential.getHasTorsion() && potential.getAngleStyle() != AngleNone);
     }
     refIntegrator.setCurrentValue(clusterSumRef.getValues());
     ClusterSum<double> * clusterSumTarget = flexModel ? (ClusterSum<double>*)&clusterSumTargetFlex : (ClusterSum<double>*)&clusterSumTargetRecursion;
@@ -1037,7 +1042,7 @@ Zeno::doVirialSamplingThread(ParametersVirial const * parameters,
 
     resultsVirial->putData(threadNum, virialProduction.getRefMeter(), virialProduction.getTargetMeter());
     resultsVirial->putOverlapRatio(threadNum, virialProduction.getAlphaStats()[0], std::pow(virialProduction.getAlphaStats()[1],2));
-    for (int iDer = 0; iDer <= numDerivatives; iDer++) {
-        resultsVirial->putVirialCoefficient(threadNum, iDer, virialProduction.getFullStats()[iDer][0], std::pow(virialProduction.getFullStats()[iDer][1],2));
+    for (int iVal = 0; iVal < clusterSumTargetT->numValues()-1; iVal++) {
+        resultsVirial->putVirialCoefficient(threadNum, iVal, virialProduction.getFullStats()[iVal][0], std::pow(virialProduction.getFullStats()[iVal][1],2));
     }
 }

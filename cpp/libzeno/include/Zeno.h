@@ -312,7 +312,6 @@ class Zeno {
   void getVirialResults
     (long long numStepsInProcess,
      ParametersVirial const & parametersVirial,
-     ParametersResults const & parametersResults,
      BoundingSphere const & boundingSphere,
      Model const & model,
      Potential<double> const & potential,

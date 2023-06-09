@@ -22,6 +22,10 @@ namespace zeno {
 
 /// Computes cluster sum.
 ///
+/// This class returns a vector of values.  The first (0) is appropriate
+/// to be used as a sampling weight; this is sufficient for the reference
+/// system.  Any remaining values are target values that are actually of
+/// interest.
 
 template <class T>
 class ClusterSum {

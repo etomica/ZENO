@@ -287,19 +287,38 @@ ResultsCompiler::compile(ResultsZeno const * resultsZeno,
 
   if (resultsVirial != NULL) {
       int numValues = resultsVirial->getNumValues();
-      for (int iValue = 0; iValue < numValues; iValue++) {
-          Uncertain<double> v = resultsVirial->getVirialCoefficientReduced(iValue);
-          std::stringstream name;
-          name << "Virial coefficient " << iValue;
+      if (parameters->getVirialFlexible() && resultsVirial->getOrder() >= 3) {
+          Uncertain<double> v = resultsVirial->getVirialCoefficientReduced(0);
+          std::stringstream unitName;
+          unitName << Units::getName(parameters->getLengthScaleUnit()) << "^" << (3*(resultsVirial->getOrder()-1));
           Result<Uncertain<double> >
-            result(name.str(),
-	           "virial_coefficient",
-	           v,
-	           Units::getName(parameters->getLengthScaleUnit()) + "^3");
+            result("Virial coefficient",
+            "virial_coefficient",
+            v,
+            unitName.str());
           results->virialCoefficient.push_back(result);
+
+          Uncertain<double> v2 = resultsVirial->getVirialCoefficientReduced(1);
+          Result<Uncertain<double> >
+            result2("Flexible correction + 4 B2^2",
+            "virial_coefficient_flex",
+            v2,
+            unitName.str());
+          results->virialCoefficient.push_back(result2);
       }
-      // flex B3
-      // Flexible correction + 2B2^2: 2334.5 +/- uncertainty
+      else {
+          for (int iValue = 0; iValue < numValues; iValue++) {
+              Uncertain<double> v = resultsVirial->getVirialCoefficientReduced(iValue);
+              std::stringstream name;
+              name << "Virial coefficient " << iValue;
+              Result<Uncertain<double> >
+                result(name.str(),
+	               "virial_coefficient",
+	               v,
+	               Units::getName(parameters->getLengthScaleUnit()) + "^3");
+              results->virialCoefficient.push_back(result);
+          }
+      }
 
       Result<double>
         resultRefFrac("Fraction of steps in reference",

@@ -178,6 +178,16 @@ ParametersResults::getBuoyancyFactorWasSet() const {
   return buoyancyFactorWasSet;
 }
 
+void
+ParametersResults::setVirialFlexible() {
+  this->virialFlexible = true;
+}
+
+bool
+ParametersResults::getVirialFlexible() const {
+  return virialFlexible;
+}
+
 void 
 ParametersResults::mpiBroadcast(int root) {
 #ifdef USE_MPI

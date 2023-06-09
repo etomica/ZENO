@@ -112,6 +112,7 @@ class Potential {
   const std::vector<std::vector<BondedPartner>> * getBondedPartners() const;
 
   const bool getHasTorsion() const;
+  const bool getFlexible() const;
 
  private:
   bool empty;
@@ -147,6 +148,7 @@ class Potential {
 template <class T>
 Potential<T>::Potential()
 : empty(true),
+  hasTorsion(false),
   bondStyle(BondStyle::Fixed),
   angleStyle(AngleStyle::AngleFixed),
   nonbondStyle(NonbondStyle::HardSphere),
@@ -766,6 +768,12 @@ template <class T>
 const bool
 Potential<T>::getHasTorsion() const {
   return hasTorsion;
+}
+
+template <class T>
+const bool
+Potential<T>::getFlexible() const {
+  return bondStyle != Fixed || angleStyle != AngleFixed || (hasTorsion && angleStyle != AngleFixed && angleStyle != AngleNone);
 }
 
 }

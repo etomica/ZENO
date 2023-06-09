@@ -62,6 +62,12 @@ public:
       return virialCoefficientReduced.size();
     }
 
+    void setOrder(int order) {
+      this->order = order;
+    }
+    int getOrder() const {
+      return this->order;
+    }
 
 private:
     Uncertain<double> * refAverage;
@@ -70,6 +76,7 @@ private:
     Uncertain<double> refAverageReduced;
     Uncertain<double> targetAverageReduced;
     Uncertain<double> overlapRatioAverageReduced;
+    int order;
     int numThreads;
     bool reduced;
     long long * refNumSteps;
