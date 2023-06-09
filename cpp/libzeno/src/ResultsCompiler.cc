@@ -293,30 +293,42 @@ ResultsCompiler::compile(ResultsZeno const * resultsZeno,
           unitName << Units::getName(parameters->getLengthScaleUnit()) << "^" << (3*(resultsVirial->getOrder()-1));
           Result<Uncertain<double> >
             result("Virial coefficient",
-            "virial_coefficient",
-            v,
-            unitName.str());
+                   "virial_coefficient",
+                   v,
+                   unitName.str());
           results->virialCoefficient.push_back(result);
 
           Uncertain<double> v2 = resultsVirial->getVirialCoefficientReduced(1);
           Result<Uncertain<double> >
             result2("Flexible correction + 4 B2^2",
-            "virial_coefficient_flex",
-            v2,
-            unitName.str());
+                    "virial_coefficient_flex",
+                    v2,
+                    unitName.str());
           results->virialCoefficient.push_back(result2);
       }
       else {
-          for (int iValue = 0; iValue < numValues; iValue++) {
+          Uncertain<double> v = resultsVirial->getVirialCoefficientReduced(0);
+          std::stringstream unitName;
+          unitName << Units::getName(parameters->getLengthScaleUnit()) << "^" << (3*(resultsVirial->getOrder()-1));
+          Result<Uncertain<double> >
+            result("Virial coefficient",
+                   "virial_coefficient",
+                   v,
+                   unitName.str());
+          results->virialCoefficient.push_back(result);
+          for (int iValue = 1; iValue < numValues; iValue++) {
               Uncertain<double> v = resultsVirial->getVirialCoefficientReduced(iValue);
-              std::stringstream name;
+              std::stringstream name, csvName;
               name << "Virial coefficient " << iValue;
+              csvName << "virial_coefficient_" << iValue;
+              std::stringstream unitNameD;
+              unitNameD << Units::getName(parameters->getLengthScaleUnit()) << "^" << (3*(resultsVirial->getOrder()-1)) << " (kB " << Units::getName(parameters->getTemperatureUnit()) << ")";
               Result<Uncertain<double> >
-                result(name.str(),
-	               "virial_coefficient",
-	               v,
-	               Units::getName(parameters->getLengthScaleUnit()) + "^3");
-              results->virialCoefficient.push_back(result);
+                resultD(name.str(),
+	                csvName.str(),
+	                v,
+	                unitNameD.str());
+              results->virialCoefficient.push_back(resultD);
           }
       }
 
