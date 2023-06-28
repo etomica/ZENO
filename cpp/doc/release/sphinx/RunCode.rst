@@ -89,6 +89,23 @@ interior calculation.
 
 ``--max-rsd-volume=<maximum relative standard deviation of volume>``
 
+.. _virial-calculation-1:
+
+Virial calculation
+~~~~~~~~~~~~~~~~~~~~
+
+Length of run is specified only in terms of number of Monte Carlo trials attempted. A typical value is 100000000.
+
+``--virial-steps=<number of trials attempted>``
+
+The order $N$ indicates which coefficient $B_N$ is calculated.
+
+``--virial-coefficient-order=<order of coefficient>``
+
+The size of the reference sphere should be roughly the size of the particle. It the particle is anisotropic, a rough average of the dimensions would be appropriate. The selection in principle has no effect on the calculated coefficient, but it can affect the efficiency of the calculation (i.e., size of the uncertainty of the coefficient).
+
+``--virial-reference-diameter=<size of reference sphere>``
+
 .. _sec:cmdline:
 
 Description of command-line options
