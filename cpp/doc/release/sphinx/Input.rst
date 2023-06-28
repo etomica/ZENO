@@ -1,6 +1,6 @@
-==========
-Input file
-==========
+===========
+Input files
+===========
 
 .. role:: raw-latex(raw)
    :format: latex
@@ -10,8 +10,8 @@ Input file
 
    \maketitle
 
-The input file, also known as a ``.bod`` file, contains the description
-of the object and some additional input parameters.
+The primary input file, also known as a ``.bod`` file and required by all types of calculation, contains the description
+of the object and some additional input parameters. Additionally, a ``.ff`` file is required for virial calculations, and it contains information about the inter- and intra-particle force fields.
 
 .. _defineobj:
 
@@ -42,6 +42,8 @@ at :math:`x=0`, :math:`y=0`, and :math:`z=1` and one of radius 3 at
 
 	SPHERE 0 0 1 2
 	SPHERE 0 0 -1 3   
+
+Virial-coefficient calculations can use only SPHERE, not CUBOID, etc..
 
 Cuboids
 ~~~~~~~
@@ -145,6 +147,17 @@ The xyz file and the conversion file are specified in the ``.bod`` file as
 	TRAJECTORY <relative path to xyz file> <relative path to conversion file>
 	
 Note that if a trajectory is given, no other geomerty may be included in the ``.bod`` file.
+
+Force-field file
+~~~~~~~~~~~~~~~~
+
+Virial-coefficient calculations require a force-field file. The name of this file is specified in the ``.bod`` as follows
+
+.. code-block:: none
+
+	FORCEFIELD <filename.ff>
+
+The .ff suffix is not required, but is a suggested convention. The format of the content of this file is described below.
 
 .. _optinputs:
 
@@ -314,4 +327,16 @@ Buoyancy factor
 | Example:          | ``bf 2`` means that the buoyancy  |
 |                   | factor is 2.                      |
 +-------------------+-----------------------------------+
+
+Force fields
+----------------------
+
+Inter-particle
+~~~~~~~~~~~~~~~
+
+
+Intra-particle
+~~~~~~~~~~~~~~~
+
+
 
