@@ -702,11 +702,11 @@ Potential<T>::uFENE(Vector3<T> ri, Vector3<T> rj, double* c) const {
   double R0sq = c[1]*c[1];
   if (r2 > R0sq) return INFINITY;
 
-  double s2 = c[2]*c[2]/r2;
+  double s2 = c[3]*c[3]/r2;
   double s6 = s2*s2*s2;
   double s12 = s6*s6;
 
-  return -0.5*c[0]*R0sq*std::log(1 - r2/R0sq) + 4*c[3]*(s12 - s6) + c[3];
+  return -0.5*c[0]*R0sq*std::log(1 - r2/R0sq) + 4*c[2]*(s12 - s6) + c[2];
 }
 
 template <class T>
