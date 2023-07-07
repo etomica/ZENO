@@ -153,7 +153,7 @@ Trajectory files cannot be used for virial-coefficient calculations.
 Force-field file
 ~~~~~~~~~~~~~~~~
 
-Virial-coefficient calculations require a force-field file. The name of this file is specified in the ``.bod`` as follows
+Virial-coefficient calculations may use a force-field file. The name of this file is specified in the ``.bod`` as follows
 
 .. code-block:: none
 
@@ -333,12 +333,24 @@ Buoyancy factor
 Force fields
 ----------------------
 
+Virial-coefficient calculations perform sampling of object configurations (arrangement and orientation of objects with respect to each other) and conformations (arrangement of the particles making up a single object). The choice of these arrangements is governed by the inter- and intra-molecular force fields, or energy functions. Further, the inter-particle energies enter into the calculation of the quantities that are averaged in the Mayer-sampling method used to compute the virial coefficients. A ``.ff`` may be specified as described above to define these interactions.  The content of this file is described here. If a ``.ff`` file is not specified, all interactions are taken to be additive hard-sphere with the specified diameters, and all objects are considered to be rigid assemblies.
+
 Inter-particle
 ~~~~~~~~~~~~~~~
 
 
 Intra-particle
 ~~~~~~~~~~~~~~~
+Force fields acting between and among atoms within a single object control its flexibility and the conformations that it can adopt.  The types of interactions include 2-body (bond stretching), and 3-body (bond bending); 4-body (torsion) potentials are not supported.
 
+Two-body potentials are specified as follows:
+
+``bond_style string``
+
+where ``string`` may be
+
+Three-body potentials are specified as follows:
+
+``angle_style string``
 
 
