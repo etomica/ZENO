@@ -11,7 +11,7 @@ Input files
    \maketitle
 
 The primary input file, also known as a ``.bod`` file and required by all types of calculation, contains the description
-of the object and some additional input parameters. Additionally, a ``.ff`` file is required for virial calculations, and it contains information about the inter- and intra-particle force fields.
+of the object and some additional input parameters. Additionally, an optional ``.ff`` file may be specified for virial calculations, containing information about the inter- and intra-particle force fields; if not specified, objects are considered to be rigid assemblies of particles interacting as hard spheres.
 
 .. _defineobj:
 
@@ -146,7 +146,9 @@ The xyz file and the conversion file are specified in the ``.bod`` file as
 
 	TRAJECTORY <relative path to xyz file> <relative path to conversion file>
 	
-Note that if a trajectory is given, no other geomerty may be included in the ``.bod`` file.
+Note that if a trajectory is given, no other geometry may be included in the ``.bod`` file.
+
+Trajectory files cannot be used for virial-coefficient calculations.
 
 Force-field file
 ~~~~~~~~~~~~~~~~
