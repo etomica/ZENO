@@ -333,15 +333,24 @@ Buoyancy factor
 Force fields and Monte Carlo trials
 ------------------------------------
 
-Virial-coefficient calculations perform sampling of object configurations (arrangement and orientation of objects with respect to each other) and 
-conformations (arrangement of the particles or atoms making up a single object). The choice of these arrangements is governed by the inter- and 
+Virial-coefficient calculations perform sampling of object *configurations* (arrangement and orientation of objects with respect to each other) and 
+*conformations* (arrangement of the particles or atoms making up a single object). The choice of these arrangements is governed by the inter- and 
 intra-molecular force fields, or energy functions. Further, the inter-particle energies enter into the calculation of the quantities that are 
 averaged in the Mayer-sampling method used to compute the virial coefficients. A ``.ff`` may be specified as described above to define these 
 interactions.  The content of this file is described here. If a ``.ff`` file is not specified, all interactions are taken to be additive hard-sphere 
 with the specified diameters, and all objects are considered to be rigid assemblies.
 
-Inter-particle
-~~~~~~~~~~~~~~~
+The types of Monte Carlo trials that ZENO can perform for virial-coefficient calculations are (1) stretch perturbation; (2) angle perturbation; 
+(3) torsion perturbation; (4) object rotation; and (5) object translation. 
+A **stretch perturbation** changes the distance between two bonded atoms in the direction of their bond, 
+moving all other atoms on each side of the bond rigidly to maintain their locations relative to each other. 
+An **angle perturbation** changes the angle between three bonded atoms, rigidly moving other atoms in the particle accordingly. 
+Any four atoms having pair bonds in such a way to define a torsion angle may be subject to a **torsion perturbation**. In this, all the atoms in the 
+particle are rotated rigidly about the torsion angle.  Whether a particular conformation-changing trial is used for sampling will depend on
+the specification of the intra-particle force fields, as described below. All conformation trials are conducted in a way that keeps the 
+particle's geometric center unchanged.
+**Object translation and rotation** move an atom assembly as a rigid object; these trials are the primary way 
+that ZENO samples configurations of the particles, and they are always performed as part of the Monte Carlo sampling.   
 
 
 Intra-particle: General
@@ -349,18 +358,14 @@ Intra-particle: General
 Force fields acting between and among atoms within a single object control its flexibility and the conformations that it can adopt.  
 The types of interactions include 2-body (bond stretching), and 3-body (bond bending); 4-body (torsion) potentials are not supported.
 
-Specification of the intra-particle force fields determines the type of Monte Carlo trials that are performed to sample conformations.  
-The types of trials that ZENO can perform are (1) stretch perturbation; (2) angle perturbation; (3) torsion perturbation; (4) object rotation; 
-and (5) object displacement. The last two will sample configurations of the particles and are always performed.   A **stretch perturbation** 
-changes the distance between two bonded atoms in the direction of their bond, moving all other atoms on each side of the bond rigidly to maintain 
-their locations relative to each other.
+Bond structures that form rings or other closed loops are not supported.
 
-Stretch, angle, and torsion perturbation trials are performed, or not, consistent with the intra-particle potential specifications, as described below.
+Stretch, angle, and torsion perturbation trials are each performed, or not, consistent with the intra-particle potential specifications, as described below.
 
 Intra-particle: Bond stretch
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Two-body potentials** are specified first by defining the style:
+Two-body potentials are specified first by defining the style:
 
 .. code-block:: none
 
@@ -370,13 +375,14 @@ where ``style`` may be ``fixed``, ``harmonic``, or ``FENE``.
 
 The bond style is global, applying to all bonded pairs, so only one specification is expected in the ``.ff`` file (if more than one is given, the last one is used).
 
-For ``fixed`` bond style, atom pairs are held rigidly at the separation implied by their positions in the ``.bod`` file.  
+For ``fixed`` bond style, atom pairs are held rigidly at the separation implied by their positions in the ``.bod`` file.
+This is accomplished by excluding bond stretch from the Monte Carlo trials used for sampling.  
 ``harmonic`` and ``FENE`` bond styles are further defined by ``bond_coeff`` statements. The harmonic bond style for the 
 energy :math:`u` as a function of atom separation :math:`r` is
 
 :math:`u(r) = k (r-r_0)^2`
 
-the force-field coefficients :math:`k` and :math:`r_0` are specified with a ``bond_coeff`` statement:
+the force-field coefficients :math:`r_0` and :math:`k` are specified with a ``bond_coeff`` statement:
 
 .. code-block:: none
 
@@ -387,7 +393,8 @@ interaction between bonded pairs, as described below. The FENE bond style (Finit
 
 :math:`u(r) = -0.5 K R_0^2 \ln \left[1-\left(\frac{r}{R_0}\right)^2\right]+4 \epsilon\left[\left(\frac{\sigma}{r}\right)^{12}-\left(\frac{\sigma}{r}\right)^6\right]+\epsilon`
 
-with coefficients defined using
+The first term extends to :math:`R_0`, the maximum extent of the bond. The second term is cutoff at :math:`2^{1/6}\sigma`, the minimum of the Lennard-Jones potential.
+Coefficients are defined using
 
 .. code-block:: none
 
@@ -401,12 +408,14 @@ Specification of the bonded atom pairs is performed with the ``bonds`` keyword o
 
 	index i j
 
-where ``index`` is as given in a ``bond_coeff`` statement, and ``i`` and ``j`` are atom indexes as given in the ``.bod`` file.
+where ``index`` is a value appearing in a previous ``bond_coeff`` statement, and ``i`` and ``j`` are atom indexes as given in the ``.bod`` file.
+The ``bonds`` list both defines the bond force field, and identifies the bonded pairs that are subject to bond perturbation Monte Carlo trials.
+If the bond style is ``fixed``, a list of bonded pairs is not required or used.
 
 Intra-particle: Angle
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Three-body potentials** are specified as follows:
+Three-body potentials are specified as follows:
 
 .. code-block:: none
 
@@ -422,20 +431,38 @@ style is further defined by ``angle_coeff`` statements. The harmonic bond style 
 
 :math:`u(\theta) = k (\theta-\theta_0)^2`
 
-the force-field coefficients :math:`k` and :math:`\theta_0` are specified with a ``angle_coeff`` statement:
+the force-field coefficients :math:`k` and :math:`\theta_0` are specified with an ``angle_coeff`` statement:
 
 .. code-block:: none
 
 	angle_coeff index theta0 k
 
-Multiple ``angle_coeff`` lines may be included in the ``.ff`` file.  ``index`` is an integer that is used to distinguish them when defining the interaction between bonded triplets, as described below. 
+Multiple ``angle_coeff`` lines may be included in the ``.ff`` file.  ``index`` is an integer that is used to distinguish them when 
+defining the interaction between bonded triplets, as described below. 
+
+Specification of the triplets that are subject to an angle potential is performed with the ``angles`` keyword on its own line, followed by a sequence of lines of the form
+
+.. code-block:: none
+
+	index i j k
+
+where ``index`` is a value appearing in a previous ``angle_coeff`` statement, and ``i``, ``j``, and ``k`` are atom indexes as given in the ``.bod`` file.
+Adjacent bonded pairs that form an angle, but do not appear in the ``angles`` list, will still be sampled using angle-perturbation trials; the absence of a particular 
+triplet means only that there is no energy contribution associated with that angle. In other words, the ``angles`` list affects only the definition of the force field,
+and (unlike the ``bonds`` list) does not impact the application of Monte Carlo trials.
+
+If the angle style is ``fixed``, a list of angle triplets is not required or used.
+
 
 Intra-particle: Torsion
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Four-body potentials** are not implemented. However, torsion moves are employed to enhance sampling of conformations. Any four atoms having pair
-bonds in such a way to define a torsion angle will be subject to a torsion move. In this, all the atoms in the particle are rotated rigidly about
-the torsion angle.  There is no torsion potential contributing to the energy change, but intra- and inter-particle nonbonded interaction energies
+Four-body potentials are not implemented. However, torsion moves are employed to enhance sampling of conformations. There is no torsion potential 
+contributing to the energy change of a torsion perturbation, but intra- and inter-particle nonbonded interaction energies
 will in general be changed by such a trial move, and these enter into the decision of acceptance of the change.
 
 Torsion trials are not performed when ``angle_style`` is selected as ``fixed``.
+
+Inter-particle
+~~~~~~~~~~~~~~~
+
