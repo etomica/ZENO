@@ -345,7 +345,9 @@ Force fields acting between and among atoms within a single object control its f
 
 Two-body potentials are specified first by defining the style:
 
-``bond_style string``
+.. code-block:: none
+
+	bond_style string
 
 where ``string`` may be ``fixed``, ``harmonic``, or ``FENE``.
 
@@ -353,32 +355,39 @@ The bond style is global, applying to all bonded pairs, so only one specificatio
 
 For ``fixed`` bond style, atom pairs are held rigidly at the separation implied by their positions in the ``.bod`` file.  ``harmonic`` and ``FENE`` bond styles are further defined by ``bond_coeff`` statements. The harmonic bond style for the energy $u$ as a function of atom separation $r$ is
 
-$u(r) = k (r-r_0)^2$
+:math:`u(r) = k (r-r_0)^2`
 
-the force-field coefficients $k$ and $r_0$ are specified with a ``bond_coeff`` statement:
+the force-field coefficients :math:`k` and :math:`r_0` are specified with a ``bond_coeff`` statement:
 
-``bond_coeff index r0 k``
+.. code-block:: none
+
+	bond_coeff index r0 k
 
 Multiple ``bond_coeff`` lines may be included in the ``.ff`` file.  ``index`` is an integer that is used to distinguish them when defining the interaction between bonded pairs, as described below. The FENE bond style (Finite Extensible Nonlinear Elastic) has the form
 
-$u(r) = -0.5 K R_0^2 \ln \left[1-\left(\frac{r}{R_0}\right)^2\right]+4 \epsilon\left[\left(\frac{\sigma}{r}\right)^{12}-\left(\frac{\sigma}{r}\right)^6\right]+\epsilon$
+:math:`u(r) = -0.5 K R_0^2 \ln \left[1-\left(\frac{r}{R_0}\right)^2\right]+4 \epsilon\left[\left(\frac{\sigma}{r}\right)^{12}-\left(\frac{\sigma}{r}\right)^6\right]+\epsilon`
 
-$\frac{1}{2}$
 
 with coefficients defined using
 
-``bond_coeff index K R0 epsilon sigma``
+.. code-block:: none
+
+	bond_coeff index K R0 epsilon sigma
 
 If the same index value appears in two ``bond_coeff`` statements, the last one applies.
 
 Specification of the bonded atom pairs is performed with the ``bonds`` keyword on its own line, followed by a sequence of lines of the form
 
-``index i j``
+.. code-block:: none
+
+	index i j
 
 where ``index`` is as given in a ``bond_coeff`` statement, and ``i`` and ``j`` are atom indexes as given in the ``.bod`` file.
 
 Three-body potentials are specified as follows:
 
-``angle_style string``
+.. code-block:: none
+
+angle_style string
 
 
