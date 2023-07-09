@@ -353,7 +353,7 @@ where ``string`` may be ``fixed``, ``harmonic``, or ``FENE``.
 
 The bond style is global, applying to all bonded pairs, so only one specification is expected in the ``.ff`` file (if more than one is given, the last one is used).
 
-For ``fixed`` bond style, atom pairs are held rigidly at the separation implied by their positions in the ``.bod`` file.  ``harmonic`` and ``FENE`` bond styles are further defined by ``bond_coeff`` statements. The harmonic bond style for the energy $u$ as a function of atom separation $r$ is
+For ``fixed`` bond style, atom pairs are held rigidly at the separation implied by their positions in the ``.bod`` file.  ``harmonic`` and ``FENE`` bond styles are further defined by ``bond_coeff`` statements. The harmonic bond style for the energy :math:`u` as a function of atom separation :math:`r` is
 
 :math:`u(r) = k (r-r_0)^2`
 
@@ -388,6 +388,6 @@ Three-body potentials are specified as follows:
 
 .. code-block:: none
 
-angle_style string
+	angle_style string
 
 
