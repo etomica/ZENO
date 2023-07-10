@@ -43,7 +43,11 @@ at :math:`x=0`, :math:`y=0`, and :math:`z=1` and one of radius 3 at
 	SPHERE 0 0 1 2
 	SPHERE 0 0 -1 3   
 
-Virial-coefficient calculations can use only SPHERE, not CUBOID, etc..
+Virial-coefficient calculations can use only SPHERE, not CUBOID, etc. In conjunction with this,
+if a ``.ff`` force-field file is specified, and it includes
+a ``nonbond_coeff`` statement, then the parameter ``r`` in the SPHERE statement
+is interpreted not as a hard-sphere radius, but instead as an atom-type index.
+This index is used to assign non-bonded potential interactions :ref:`as described below<Nonbond>`.
 
 Cuboids
 ~~~~~~~
@@ -463,6 +467,16 @@ will in general be changed by such a trial move, and these enter into the decisi
 
 Torsion trials are not performed when ``angle_style`` is selected as ``fixed``.
 
+Intra-particle: Nonbonded
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In addition to the bonded interactions, atoms in the same particle interact according to the same nonbonded potential that governs interactions
+of atoms in different particles.  Specification of these interactions is provided in the next section.  Intra-particle nonbonded interactions
+are applied to any pair of atoms that are not explicitly listed in the ``bonds`` list, and that are not listed together in any of the
+triplets in the ``angles`` list.
+
+.. _Nonbond:
+
 Inter-particle
 ~~~~~~~~~~~~~~~
 
@@ -472,24 +486,42 @@ Atoms in different particles interact according to the potential specifed by the
 
 	nonbond_style style
 
-where ``style`` may be ``lj``, ``wca``, or ``hs``. The nonbond style is global, so only one specification is expected in the ``.ff`` file 
-(if more than one is given, the last one is used). If no nonbond style is specified, the default of ``hs`` is used.
+where ``style`` may be ``LJ``, ``WCA``, or ``HS``. The nonbond style is global, so only one specification is expected in the ``.ff`` file 
+(if more than one is given, the last one is used). If no nonbond style is specified (or if no ``.ff`` file is given), the default of ``HS`` is used.
 
-The ``lj`` nonbond style specifies the Lennard-Jones potential, defined as
+The ``LJ`` nonbond style specifies the Lennard-Jones potential, defined as
 
-:math:`u_{\rm lj}(r) = 4 \epsilon\left[\left(\frac{\sigma}{r}\right)^{12}-\left(\frac{\sigma}{r}\right)^6\right]`
+:math:`u_{\rm LJ}(r) = 4 \epsilon\left[\left(\frac{\sigma}{r}\right)^{12}-\left(\frac{\sigma}{r}\right)^6\right]`
 
-No truncation of the potential is applied. The ``wca`` style is the soft repulsive Weeks-Chandler-Andersen potential, which is the Lennard-Jones potential
+No truncation of the potential is applied. The ``WCA`` style is the soft repulsive Weeks-Chandler-Andersen potential, which is the Lennard-Jones potential
 shifted up to zero and truncated at its minimum-energy separation
 
-:math:`u(r)= \begin{cases}u_{\rm lj}(r)+\epsilon & r<2^{1 / 6} \sigma \\ 0 & r\ge2^{⅙} \sigma\end{cases}`
+:math:`u_{\rm WCA}(r)= \begin{cases}u_{\rm LJ}(r)+\epsilon & r<2^{⅙} \sigma \\ 0 & r\ge2^{⅙} \sigma\end{cases}`
 
-Parameters for the ``lj`` and ``wca`` nonbond styles are specified with the ``nonbond_coeff`` command
+Parameters for the ``LJ`` and ``WCA`` nonbond styles are specified with the ``nonbond_coeff`` command
+
 .. code-block:: none
 
-	nonbond_style style
+	nonbond_coeff index sigma epsilon
 
+Multiple ``nonbond_coeff`` statements may appear in a ``.ff`` file.  The ``index`` value is used to assign the coefficients to the atoms via
+the ``r`` parameter in the SPHERE statement.  For example, all atoms specified via SPHERE statements with ``r`` equal to 1 will be assigned
+the non-bonded potential with coefficients given by the ``nonbond_coeff`` statement having index of 1; all SPHERE with ``r`` equal to 2 will have 
+parameters assigned by ``nonbond_coeff`` with index 2, etc. 
 
+In many cases, there will be only one ``nonbond_coeff`` statement and hence only one atom type index. When multiple ``nonbond_coeff`` are specified,
+unlike atoms will interact with parameters given by Lorentz-Berthelot combining rules: 
+:math:`\sigma=(\sigma_1+\sigma_2)/2`; :math:`\epsilon=(\epsilon_1 \epsilon_2)^{1/2}`.
 
-The ``hs`` nonbond style indicates the hard-sphere potential; this is the default if no nonbond style is specified. 
+The ``HS`` nonbond style indicates the hard-sphere potential; this is the default if no nonbond style is specified. The hard-sphere diameters (not radii)
+are given by 
+
+.. code-block:: none
+
+	nonbond_coeff index sigma
+
+where ``index`` is the atom type index assigned by the SPHERE statements.
+
+If no ``nonbond_coeff`` is specified at all, then the potential defaults to ``HS`` using the radii ``r`` specified in the SPHERE statements.  This is
+the case even if ``nonbond_style`` is specified as ``LJ`` or ``WCA``.
 
