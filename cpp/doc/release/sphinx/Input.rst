@@ -466,3 +466,30 @@ Torsion trials are not performed when ``angle_style`` is selected as ``fixed``.
 Inter-particle
 ~~~~~~~~~~~~~~~
 
+Atoms in different particles interact according to the potential specifed by the nonbond style
+
+.. code-block:: none
+
+	nonbond_style style
+
+where ``style`` may be ``lj``, ``wca``, or ``hs``. The nonbond style is global, so only one specification is expected in the ``.ff`` file 
+(if more than one is given, the last one is used). If no nonbond style is specified, the default of ``hs`` is used.
+
+The ``lj`` nonbond style specifies the Lennard-Jones potential, defined as
+
+:math:`u_{\rm lj}(r) = 4 \epsilon\left[\left(\frac{\sigma}{r}\right)^{12}-\left(\frac{\sigma}{r}\right)^6\right]`
+
+No truncation of the potential is applied. The ``wca`` style is the soft repulsive Weeks-Chandler-Andersen potential, which is the Lennard-Jones potential
+shifted up to zero and truncated at its minimum-energy separation
+
+:math:`u(r)= \begin{cases}u_{\rm lj}(r)+\epsilon & r<2^{1 / 6} \sigma \\ 0 & r\ge2^{⅙} \sigma\end{cases}`
+
+Parameters for the ``lj`` and ``wca`` nonbond styles are specified with the ``nonbond_coeff`` command
+.. code-block:: none
+
+	nonbond_style style
+
+
+
+The ``hs`` nonbond style indicates the hard-sphere potential; this is the default if no nonbond style is specified. 
+
