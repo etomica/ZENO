@@ -60,6 +60,7 @@ ParametersResults::ParametersResults()
     solventViscosity(),
     solventViscosityUnit(),
     solventViscosityWasSet(false),
+    virialFlexible(false),
     buoyancyFactor(),
     buoyancyFactorWasSet(false) {
 
