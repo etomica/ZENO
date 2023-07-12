@@ -370,12 +370,13 @@ doTrial(std::vector<double> oldValue, bool & accepted) {
         exit(1);
     }
     double uOld = 0, uNew = 0;
-    const std::vector<std::vector<BondedPartner>> * bondedPartners = potential.getBondedPartners();
     std::vector<StretchParameters> stepParameters;
 
     for(int j = 0; j < (int)MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size(); j++) {
         Particle<T> * particle = MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j);
-        uOld += potential.energy1(particle);
+        if (particle->numSpheres() < 2) continue;
+        const std::vector<std::vector<BondedPartner>> * bondedPartners = potential.getBondedPartners(j);
+        uOld += potential.energy1(j, particle);
         std::vector<int> modified;
         double s = (MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomNumberGenerator()->getRandIn01() - 0.5) * MCMove<T, RandomNumberGenerator>::stepSize;
         int b = 0;
@@ -404,7 +405,7 @@ doTrial(std::vector<double> oldValue, bool & accepted) {
         for (int k=0; k<particle->numSpheres(); k++) {
             particle->translateSphereBy(k, shift);
         }
-        uNew += potential.energy1(particle);
+        uNew += potential.energy1(j, particle);
     }
     std::vector<double> newValue = oldValue;
     if(MCMove<T, RandomNumberGenerator>::clusterSum != NULL) {
@@ -420,6 +421,8 @@ doTrial(std::vector<double> oldValue, bool & accepted) {
         for(unsigned int j = 0; j < (MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size()); ++j)
         {
             Particle<T> * particle = MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j);
+            if (particle->numSpheres() < 2) continue;
+            const std::vector<std::vector<BondedPartner>> * bondedPartners = potential.getBondedPartners(j);
             StretchParameters sp = stepParameters[j];
             int b = sp.sphere1, a = sp.sphere2;
             double s = -sp.step;
@@ -502,13 +505,13 @@ doTrial(std::vector<double> oldValue, bool & accepted) {
         exit(1);
     }
     double uOld = 0, uNew = 0;
-    const std::vector<std::vector<BondedPartner>> * bondedPartners = potential.getBondedPartners();
     std::vector<AngleParameters> stepParameters;
 
     for(int j = 0; j < (int)MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size(); j++) {
         Particle<T> * particle = MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j);
         if (particle->numSpheres() < 3) continue;
-        uOld += potential.energy1(particle);
+        const std::vector<std::vector<BondedPartner>> * bondedPartners = potential.getBondedPartners(j);
+        uOld += potential.energy1(j, particle);
         std::vector<int> modified;
         double s = (MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomNumberGenerator()->getRandIn01() - 0.5) * MCMove<T, RandomNumberGenerator>::stepSize;
         int b = 0;
@@ -540,7 +543,7 @@ doTrial(std::vector<double> oldValue, bool & accepted) {
         for (int k=0; k<particle->numSpheres(); k++) {
             particle->translateSphereBy(k, shift);
         }
-        uNew += potential.energy1(particle);
+        uNew += potential.energy1(j, particle);
     }
     std::vector<double> newValue = oldValue;
     if(MCMove<T, RandomNumberGenerator>::clusterSum != NULL) {
@@ -557,6 +560,7 @@ doTrial(std::vector<double> oldValue, bool & accepted) {
         {
             Particle<T> * particle = MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j);
             if (particle->numSpheres() < 3) continue;
+            const std::vector<std::vector<BondedPartner>> * bondedPartners = potential.getBondedPartners(j);
             AngleParameters sp = stepParameters[j];
             int b = sp.sphere1, a = sp.sphere2;
             std::vector<int> modified;
@@ -639,13 +643,13 @@ doTrial(std::vector<double> oldValue, bool & accepted) {
         exit(1);
     }
     double uOld = 0, uNew = 0;
-    const std::vector<std::vector<BondedPartner>> * bondedPartners = potential.getBondedPartners();
     std::vector<TorsionParameters> stepParameters;
 
     for(int j = 0; j < (int)MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->size(); j++) {
         Particle<T> * particle = MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j);
         if (particle->numSpheres() < 4) continue;
-        uOld += potential.energy1(particle);
+        const std::vector<std::vector<BondedPartner>> * bondedPartners = potential.getBondedPartners(j);
+        uOld += potential.energy1(j, particle);
         std::vector<int> modified;
         double s = (MCMove<T, RandomNumberGenerator>::integratorMSMC.getRandomNumberGenerator()->getRandIn01() - 0.5) * MCMove<T, RandomNumberGenerator>::stepSize;
         int a = 0, b = 0;
@@ -673,7 +677,7 @@ doTrial(std::vector<double> oldValue, bool & accepted) {
         for (int k=0; k<particle->numSpheres(); k++) {
             particle->translateSphereBy(k, shift);
         }
-        uNew += potential.energy1(particle);
+        uNew += potential.energy1(j, particle);
     }
     std::vector<double> newValue = oldValue;
     if(MCMove<T, RandomNumberGenerator>::clusterSum != NULL) {
@@ -691,6 +695,7 @@ doTrial(std::vector<double> oldValue, bool & accepted) {
         {
             Particle<T> * particle = MCMove<T, RandomNumberGenerator>::integratorMSMC.getParticles()->at(j);
             if (particle->numSpheres() < 4) continue;
+            const std::vector<std::vector<BondedPartner>> * bondedPartners = potential.getBondedPartners(j);
             TorsionParameters sp = stepParameters[j];
             int a = sp.sphere1, b = sp.sphere2;
             std::vector<int> modified;

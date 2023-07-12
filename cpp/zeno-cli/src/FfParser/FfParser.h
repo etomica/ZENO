@@ -58,7 +58,7 @@ namespace ff_parser {
     class FfParser {
         public:
             enum FfSection {None, Bonds, Angles, Dihedrals};
-            FfParser(std::istream &in, zeno::Potential<double> * potential);
+            FfParser(std::istream &in, int activeModel, zeno::Potential<double> * potential);
 
             int parse();
 
@@ -78,6 +78,7 @@ namespace ff_parser {
 
             std::istream & in;
             zeno::Potential<double> * potential;
+            int activeModel;
             FfSection ffSection;
 
             // Begin class FfParserGrammar

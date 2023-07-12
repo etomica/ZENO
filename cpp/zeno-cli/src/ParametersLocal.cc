@@ -52,8 +52,6 @@ ParametersLocal::ParametersLocal()
     xyzInputFileNameWasSet(false),
     mapInputFileName(),
     mapInputFileNameWasSet(false),
-    ffInputFileName(),
-    ffInputFileNameWasSet(false),
     csvOutputFileName(),
     csvOutputFileNameWasSet(false),
     mpiSize(1),
@@ -111,22 +109,6 @@ ParametersLocal::getMapInputFileName() const {
 bool
 ParametersLocal::getMapInputFileNameWasSet() const {
   return mapInputFileNameWasSet;
-}
-
-void
-ParametersLocal::setFfInputFileName(std::string const & ffInputFileName) {
-  this->ffInputFileName = ffInputFileName;
-  ffInputFileNameWasSet = true;
-}
-
-std::string
-ParametersLocal::getFfInputFileName() const {
-  return ffInputFileName;
-}
-
-bool
-ParametersLocal::getFfInputFileNameWasSet() const {
-  return ffInputFileNameWasSet;
 }
 
 void
