@@ -11,7 +11,9 @@ Input files
    \maketitle
 
 The primary input file, also known as a ``.bod`` file and required by all types of calculation, contains the description
-of the object and some additional input parameters. Additionally, an optional ``.ff`` file may be specified for virial calculations, containing information about the inter- and intra-particle force fields; if not specified, objects are considered to be rigid assemblies of particles interacting as hard spheres.
+of the object and some additional input parameters. Additionally, an optional ``.ff`` file may be specified for virial calculations, 
+containing information about the inter- and intra-particle force fields; if not specified, objects are considered to be rigid assemblies 
+of particles interacting as hard spheres.
 
 .. _defineobj:
 
@@ -19,7 +21,10 @@ Defining the object(s)
 ----------------------
 
 A single object of interest must be described by a collection of spheres
-and cuboids, which may or may not be overlapping. The code has also be extended for the case of running not just a single snapshot composed of a collection of spheres, but also a trajectory or series of snapshots each composed of a collection of spheres. In all cases the shape of the object is defined in the ``.bod`` file.
+and cuboids, which may or may not be overlapping. The code has also be extended for the case of running not just a single snapshot composed of a collection of 
+spheres, but also a trajectory or series of snapshots each composed of a collection of spheres.  Alternatively, multiple different objects (mixtures)
+may be of interest for virial calculations, and these are handled in the ``.bod`` file using the SPECIES keyword, :ref:`as described below<Mixtures>`.
+In all cases, object shapes are defined in a ``.bod`` file.
 
 Spheres
 ~~~~~~~
@@ -154,6 +159,47 @@ Note that if a trajectory is given, no other geometry may be included in the ``.
 
 Trajectory files cannot be used for virial-coefficient calculations.
 
+.. _Mixtures:
+
+Mixtures
+~~~~~~~~~~~~~~~~
+
+Virial coefficients can be computed for sets of unlike particles, for the purpose of describing their mixtures.
+For a :math:`c`-component mixture, the :math:`n^{\rm th}` virial coefficient of the mixture is given as a mole-fraction
+weighted sum of virial coefficients computed for all the unique combinations of the species that can be formed by
+taking them :math:`n` at a time.  For example, the second virial coefficient of species labeled 1 and 2 involves three
+coefficients, :math:`B_{11}`, :math:`B_{12}`, and :math:`B_{22}`, where :math:`B_{ij}` is the coefficient for a particle
+of species :math:`i` and a particle of species :math:`j`.  Then,
+
+:math:`B_{\rm mix} = B_{11}x_1^2 + 2 B_{12}x_1x_2 + B_{22}x_2^2`
+
+where :math:`x_i` is the mole fraction of species :math:`i`.
+For the general case, there are :math:`{n+c-1 \choose c-1}` such coefficients.
+
+A single ZENO run provides a single mixture-coefficient value. The coefficient to be calculated is specified using
+multiple instances of the SPECIES keyword
+
+.. code-block:: none
+
+	SPECIES <filename.bod>
+
+The specified file is a conventional ``.bod`` file providing the definition of a particle of that species.  If a mixture calculation
+is being performed, the number of SPECIES lines must equal the order of the coefficient specified in the 
+command line. The ``.bod`` file containing SPECIES statements is the one referenced at the command line, and should contain no other statements.  A specific `.bod`
+file may appear more than once in the SPECIES list. For example, to compute the 3rd-virial mixture coefficient :math:`B_{112}`,
+the ``.bod`` file referenced from the command line should contain only the three lines (in any order)
+
+.. code-block:: none
+
+	SPECIES <species1.bod>
+	SPECIES <species1.bod>
+	SPECIES <species2.bod>
+
+(the file names do not have to be "species1", etc.).  The ``.bod`` files specified by the SPECIES statements are set up the same way as the 
+conventional ``.bod`` file used for a pure-species calculation. If computing a pure-species (not mixture) virial coefficient, it is
+not necessary to have a species-defining ``.bod`` file—the ``.bod`` defining the particle may be referenced directly from the
+command line.
+
 Force-field file
 ~~~~~~~~~~~~~~~~
 
@@ -163,7 +209,7 @@ Virial-coefficient calculations may use a force-field file. The name of this fil
 
 	FORCEFIELD <filename.ff>
 
-The .ff suffix is not required, but is a suggested convention. The format of the content of this file is described below.
+The .ff suffix is not required, but is a suggested convention. The format of the content of this file :ref:`is described below<Forcefield>`.
 
 .. _optinputs:
 
@@ -333,6 +379,8 @@ Buoyancy factor
 | Example:          | ``bf 2`` means that the buoyancy  |
 |                   | factor is 2.                      |
 +-------------------+-----------------------------------+
+
+.. _Forcefield:
 
 Force fields and Monte Carlo trials
 ------------------------------------
