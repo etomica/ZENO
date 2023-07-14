@@ -240,7 +240,10 @@ Potential<T>::~Potential() {
   for (int i=0; i<(int)nonbondCoeffs.size(); i++) {
     for (int j=i; j<(int)nonbondCoeffs[i].size(); j++) delete [] nonbondCoeffs[i][j];
   }
-  for (int i=0; i<(int)bondedPartners.size(); i++) delete [] nonbondedScaling[i];
+  for (int i=0; i<(int)bondedPartners.size(); i++) {
+    for (int j=0; j<(int)bondedPartners[i].size(); j++) delete [] nonbondedScaling[i][j];
+    delete [] nonbondedScaling[i];
+  }
   delete[] nonbondedScaling;
 }
 
@@ -433,8 +436,8 @@ Potential<T>::initialize(std::vector<int> & nspm) {
       bondedPartners[i][bp.sphere1].push_back(partner1);
       BondedPartner partner2 = {bp.sphere1, bp.bondType};
       bondedPartners[i][bp.sphere2].push_back(partner2);
-      nonbondedScaling[bp.sphere1][bp.sphere2] = 0;
-      nonbondedScaling[bp.sphere2][bp.sphere1] = 0;
+      nonbondedScaling[i][bp.sphere1][bp.sphere2] = 0;
+      nonbondedScaling[i][bp.sphere2][bp.sphere1] = 0;
     }
 
     for (AngleTriplet at : angleTriplets[i]) {
@@ -446,12 +449,12 @@ Potential<T>::initialize(std::vector<int> & nspm) {
         partner2 = {at.sphere3, -1};
         bondedPartners[i][at.sphere2].push_back(partner2);
       }
-      nonbondedScaling[at.sphere1][at.sphere2] = 0;
-      nonbondedScaling[at.sphere1][at.sphere3] = 0;
-      nonbondedScaling[at.sphere2][at.sphere3] = 0;
-      nonbondedScaling[at.sphere2][at.sphere1] = 0;
-      nonbondedScaling[at.sphere3][at.sphere1] = 0;
-      nonbondedScaling[at.sphere3][at.sphere2] = 0;
+      nonbondedScaling[i][at.sphere1][at.sphere2] = 0;
+      nonbondedScaling[i][at.sphere1][at.sphere3] = 0;
+      nonbondedScaling[i][at.sphere2][at.sphere3] = 0;
+      nonbondedScaling[i][at.sphere2][at.sphere1] = 0;
+      nonbondedScaling[i][at.sphere3][at.sphere1] = 0;
+      nonbondedScaling[i][at.sphere3][at.sphere2] = 0;
     }
 
     if (bondStyle != Fixed || angleStyle != AngleFixed) {
