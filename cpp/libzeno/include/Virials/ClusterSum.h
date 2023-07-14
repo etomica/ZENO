@@ -221,7 +221,7 @@ template <class T>
 std::vector<double>
 ClusterSumWheatleyRecursion<T>::
 getValues() {
-    const int nDer = ClusterSum<T>::values.size() - 1;
+    const int nDer = ClusterSum<T>::values.size() - 2;
     const int n = ClusterSum<T>::particles->size();
     const int nf = (1 << n);
     double fQ[nf][nDer+1], fC[nf][nDer+1];

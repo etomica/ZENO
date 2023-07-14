@@ -46,9 +46,11 @@ using namespace zeno;
 
 ff_parser::FfParser::FfParser
 (std::istream &in,
+ int activeModel,
  Potential<double> * potential) :
   in(in),
   potential(potential),
+  activeModel(activeModel),
   ffSection(None) {
 
 }
@@ -90,7 +92,7 @@ ff_parser::FfParser::setSection(FfSection s) {
 void ff_parser::FfParser::processThreeInts(int a, int b, int c) {
 
   if (ffSection == Bonds) {
-    potential->addBondPair(a, b, c);
+    potential->addBondPair(a, activeModel, b, c);
   }
   else {
     std::cout << "Found three ints outside bonds section" << std::endl;
@@ -100,7 +102,7 @@ void ff_parser::FfParser::processThreeInts(int a, int b, int c) {
 void ff_parser::FfParser::processFourInts(int a, int b, int c, int d) {
 
   if (ffSection == Angles) {
-    potential->addAngleTriplet(a, b, c, d);
+    potential->addAngleTriplet(a, activeModel, b, c, d);
   }
   else {
     std::cout << "Found four ints outside angles section" << std::endl;

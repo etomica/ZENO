@@ -82,57 +82,61 @@ class Potential {
   ~Potential();
 
   void setBondStyleName(std::string bondStyle);
-  void addBondPair(int bondType, int sphere1, int sphere2);
+  void addBondPair(int bondType, int model, int sphere1, int sphere2);
   void setBondCoeff(int bondType, double* coeffs);
 
   void setAngleStyleName(std::string angleStyle);
   // sphere2 is the central sphere
-  void addAngleTriplet(int angleType, int sphere1, int sphere2, int sphere3);
+  void addAngleTriplet(int angleType, int model, int sphere1, int sphere2, int sphere3);
   void setAngleCoeff(int angleType, double* coeffs);
 
   void setNonbondStyleName(std::string nonbondStyle);
   void setNonbondCoeff(int sphereType, double* coeffs);
 
   const BondStyle getBondStyle() const;
-  std::vector<BondedPair> getBondPairs() const;
+  std::vector<std::vector<BondedPair>> getBondPairs() const;
   const std::vector<double*> * getBondCoeffs() const;
 
   const AngleStyle getAngleStyle() const;
-  std::vector<AngleTriplet> getAngleTriplets() const;
+  std::vector<std::vector<AngleTriplet>> getAngleTriplets() const;
   const std::vector<double*> * getAngleCoeffs() const;
 
   const NonbondStyle getNonbondStyle() const;
   const std::vector<double*> * getNonbondCoeffs1() const;
 
-  void initialize(int numSpheres);
+  void initialize(std::vector<int> & nspm);
 
-  double energy1(Particle<T> * particle) const;
+  double energy1(int iModel, Particle<T> * particle) const;
   double energy2(Particle<T> * particle1, Particle<T> * particle2) const;
 
-  const std::vector<std::vector<BondedPartner>> * getBondedPartners() const;
+  const std::vector<std::vector<BondedPartner>> * getBondedPartners(int iModel) const;
 
-  const bool getHasTorsion() const;
+  const bool getAnyTorsion() const;
+  const std::vector<bool> getHasTorsion() const;
   const bool getFlexible() const;
+  const bool getRigidHS() const;
 
  private:
   bool empty;
-  bool hasTorsion;
+  std::vector<bool> hasTorsion;
 
   BondStyle bondStyle;
   AngleStyle angleStyle;
   NonbondStyle nonbondStyle;
 
-  std::vector<BondedPair> bondPairs;
-  std::vector<double*> bondCoeffs;
-  std::vector<std::vector<BondedPartner>> bondedPartners;
+  std::vector<int> numSpheresPerModel;
 
-  std::vector<AngleTriplet> angleTriplets;
+  std::vector<std::vector<BondedPair>> bondPairs;
+  std::vector<double*> bondCoeffs;
+  std::vector<std::vector<std::vector<BondedPartner>>> bondedPartners;
+
+  std::vector<std::vector<AngleTriplet>> angleTriplets;
   std::vector<double*> angleCoeffs;
 
   std::vector<double*> nonbondCoeffs1;
   std::vector<std::vector<double*>> nonbondCoeffs;
 
-  double** nonbondedScaling;
+  double*** nonbondedScaling;
 
   double uHarmonic(Vector3<T> ri, Vector3<T> rj, double* c) const;
   double uFENE(Vector3<T> ri, Vector3<T> rj, double* c) const;
@@ -148,7 +152,6 @@ class Potential {
 template <class T>
 Potential<T>::Potential()
 : empty(true),
-  hasTorsion(false),
   bondStyle(BondStyle::Fixed),
   angleStyle(AngleStyle::AngleFixed),
   nonbondStyle(NonbondStyle::HardSphere),
@@ -158,7 +161,7 @@ Potential<T>::Potential()
 
 template <class T>
 Potential<T>::Potential(const Potential &p) : empty(true),
-                                           hasTorsion(false),
+                                           hasTorsion(p.getHasTorsion()),
                                            bondStyle(p.getBondStyle()),
                                            angleStyle(p.getAngleStyle()),
                                            nonbondStyle(p.getNonbondStyle()),
@@ -227,7 +230,7 @@ Potential<T>::Potential(const Potential &p) : empty(true),
     }
   }
 
-  initialize(p.bondedPartners.size());
+  initialize(numSpheresPerModel);
 }
 
 template <class T>
@@ -266,9 +269,10 @@ Potential<T>::setBondStyleName(std::string bondStyleName) {
 ///
 template <class T>
 void
-Potential<T>::addBondPair(int bondType, int sphere1, int sphere2) {
+Potential<T>::addBondPair(int bondType, int model, int sphere1, int sphere2) {
+  if ((int)bondPairs.size() <= model) bondPairs.resize(model+1);
   struct BondedPair bp = {bondType, sphere1-1, sphere2-1};
-  bondPairs.push_back(bp);
+  bondPairs[model].push_back(bp);
 }
 
 /// Set the bond potential parameters for the given bond type.
@@ -307,9 +311,10 @@ Potential<T>::setAngleStyleName(std::string angleStyleName) {
 ///
 template <class T>
 void
-Potential<T>::addAngleTriplet(int angleType, int sphere1, int sphere2, int sphere3) {
+Potential<T>::addAngleTriplet(int angleType, int model, int sphere1, int sphere2, int sphere3) {
+  if ((int)angleTriplets.size() <= model) angleTriplets.resize(model+1);
   struct AngleTriplet bt = {angleType, sphere1-1, sphere2-1, sphere3-1};
-  angleTriplets.push_back(bt);
+  angleTriplets[model].push_back(bt);
 }
 
 /// Set the bond potential parameters for the given bond type.
@@ -374,7 +379,7 @@ Potential<T>::getNonbondStyle() const {
 }
 
 template <class T>
-std::vector<BondedPair>
+std::vector<std::vector<BondedPair>>
 Potential<T>::getBondPairs() const {
   return bondPairs;
 }
@@ -386,7 +391,7 @@ Potential<T>::getBondCoeffs() const {
 }
 
 template <class T>
-std::vector<AngleTriplet>
+std::vector<std::vector<AngleTriplet>>
 Potential<T>::getAngleTriplets() const {
   return angleTriplets;
 }
@@ -405,86 +410,93 @@ Potential<T>::getNonbondCoeffs1() const {
 
 template <class T>
 void
-Potential<T>::initialize(int numSpheres) {
+Potential<T>::initialize(std::vector<int> & nspm) {
+  numSpheresPerModel = nspm;
 
-  nonbondedScaling = new double*[numSpheres];
-  for (int i=0; i<numSpheres; i++) {
-    nonbondedScaling[i] = new double[numSpheres];
-    for (int j=0; j<numSpheres; j++) {
-      nonbondedScaling[i][j] = 1;
-    }
-  }
-
-  bondedPartners.resize(numSpheres);
-
-  for (BondedPair bp : bondPairs) {
-    BondedPartner partner1 = {bp.sphere2, bp.bondType};
-    bondedPartners[bp.sphere1].push_back(partner1);
-    BondedPartner partner2 = {bp.sphere1, bp.bondType};
-    bondedPartners[bp.sphere2].push_back(partner2);
-    nonbondedScaling[bp.sphere1][bp.sphere2] = 0;
-    nonbondedScaling[bp.sphere2][bp.sphere1] = 0;
-  }
-
-  for (AngleTriplet at : angleTriplets) {
-    if (bondStyle == Fixed) {
-      // need to use angle triplets to construct topology
-      // these won't be used to compute energy, just to do MC moves
-      BondedPartner partner2 = {at.sphere1, -1};
-      bondedPartners[at.sphere2].push_back(partner2);
-      partner2 = {at.sphere3, -1};
-      bondedPartners[at.sphere2].push_back(partner2);
-    }
-    nonbondedScaling[at.sphere1][at.sphere2] = 0;
-    nonbondedScaling[at.sphere1][at.sphere3] = 0;
-    nonbondedScaling[at.sphere2][at.sphere3] = 0;
-    nonbondedScaling[at.sphere2][at.sphere1] = 0;
-    nonbondedScaling[at.sphere3][at.sphere1] = 0;
-    nonbondedScaling[at.sphere3][at.sphere2] = 0;
-  }
-
-  if (bondStyle != Fixed || angleStyle != AngleFixed) {
-    // check that our model is fully connected
-    std::vector<int> stack;
-    std::set<int> seen;
-    if (bondedPartners[0].size() > 0) {
-      seen.insert(0);
-      for (BondedPartner bp0 : bondedPartners[0]) {
-        seen.insert(bp0.sphere2);
-        stack.push_back(bp0.sphere2);
+  nonbondedScaling = new double**[nspm.size()];
+  bondedPartners.resize(nspm.size());
+  hasTorsion.resize(nspm.size());
+  if (bondPairs.size() < nspm.size()) bondPairs.resize(nspm.size());
+  if (angleTriplets.size() < nspm.size()) angleTriplets.resize(nspm.size());
+  for (int i=0; i<(int)nspm.size(); i++) {
+    bondedPartners[i].resize(nspm[i]);
+    nonbondedScaling[i] = new double*[nspm[i]];
+    for (int j=0; j<nspm[i]; j++) {
+      nonbondedScaling[i][j] = new double[nspm[i]];
+      for (int k=0; k<nspm[i]; k++) {
+        nonbondedScaling[i][j][k] = 1;
       }
+    }
 
-      while (stack.size() > 0) {
-        int n = stack[stack.size()-1];
-        stack.pop_back();
-        for (BondedPartner bpn : bondedPartners[n]) {
-          int s2 = bpn.sphere2;
-          if (seen.count(s2) == 0) {
-            seen.insert(s2);
-            stack.push_back(s2);
+    for (BondedPair bp : bondPairs[i]) {
+      BondedPartner partner1 = {bp.sphere2, bp.bondType};
+      bondedPartners[i][bp.sphere1].push_back(partner1);
+      BondedPartner partner2 = {bp.sphere1, bp.bondType};
+      bondedPartners[i][bp.sphere2].push_back(partner2);
+      nonbondedScaling[bp.sphere1][bp.sphere2] = 0;
+      nonbondedScaling[bp.sphere2][bp.sphere1] = 0;
+    }
+
+    for (AngleTriplet at : angleTriplets[i]) {
+      if (bondStyle == Fixed) {
+        // need to use angle triplets to construct topology
+        // these won't be used to compute energy, just to do MC moves
+        BondedPartner partner2 = {at.sphere1, -1};
+        bondedPartners[i][at.sphere2].push_back(partner2);
+        partner2 = {at.sphere3, -1};
+        bondedPartners[i][at.sphere2].push_back(partner2);
+      }
+      nonbondedScaling[at.sphere1][at.sphere2] = 0;
+      nonbondedScaling[at.sphere1][at.sphere3] = 0;
+      nonbondedScaling[at.sphere2][at.sphere3] = 0;
+      nonbondedScaling[at.sphere2][at.sphere1] = 0;
+      nonbondedScaling[at.sphere3][at.sphere1] = 0;
+      nonbondedScaling[at.sphere3][at.sphere2] = 0;
+    }
+
+    if (bondStyle != Fixed || angleStyle != AngleFixed) {
+      // check that our model is fully connected
+      std::vector<int> stack;
+      std::set<int> seen;
+      if (bondedPartners[0].size() > 0) {
+        seen.insert(0);
+        for (BondedPartner bp0 : bondedPartners[i][0]) {
+          seen.insert(bp0.sphere2);
+          stack.push_back(bp0.sphere2);
+        }
+
+        while (stack.size() > 0) {
+          int n = stack[stack.size()-1];
+          stack.pop_back();
+          for (BondedPartner bpn : bondedPartners[i][n]) {
+            int s2 = bpn.sphere2;
+            if (seen.count(s2) == 0) {
+              seen.insert(s2);
+              stack.push_back(s2);
+            }
           }
         }
       }
-    }
-    if ((int)seen.size() != numSpheres) {
-      std::cerr << "Connectivity missing for some spheres.  From first sphere (1), cannot reach";
-      for (int i=0; i<numSpheres; i++) {
-        if (seen.count(i) == 0) std::cerr << " " << (i+1);
+      if ((int)seen.size() != nspm[i]) {
+        std::cerr << "Connectivity missing for some spheres.  From first sphere (1), cannot reach";
+        for (int i=0; i<nspm[i]; i++) {
+          if (seen.count(i) == 0) std::cerr << " " << (i+1);
+        }
+        std::cerr << std::endl;
+        exit(1);
       }
-      std::cerr << std::endl;
-      exit(1);
     }
-  }
 
-  if (angleStyle != AngleFixed && numSpheres >= 4) {
-    // can we find an atom with 2+ bond partners where 1 of the partners also has 2+ partners
-    for (int a=0; a<numSpheres && !hasTorsion; a++) {
-      if (bondedPartners[a].size() >= 2) {
-        for (int bb=0; bb<(int)bondedPartners[a].size(); bb++) {
-          int b = bondedPartners[a][bb].sphere2;
-          if (bondedPartners[b].size() >= 2) {
-            hasTorsion = true;
-            break;
+    if (angleStyle != AngleFixed && nspm[i] >= 4) {
+      // can we find an atom with 2+ bond partners where 1 of the partners also has 2+ partners
+      for (int a=0; a<nspm[i] && !hasTorsion[i]; a++) {
+        if (bondedPartners[a].size() >= 2) {
+          for (int bb=0; bb<(int)bondedPartners[a].size(); bb++) {
+            int b = bondedPartners[i][a][bb].sphere2;
+            if (bondedPartners[b].size() >= 2) {
+              hasTorsion[i] = true;
+              break;
+            }
           }
         }
       }
@@ -525,12 +537,12 @@ Potential<T>::initialize(int numSpheres) {
 
 template <class T>
 double
-Potential<T>::energy1(Particle<T> * particle) const {
+Potential<T>::energy1(int iModel, Particle<T> * particle) const {
   if ((bondStyle == Fixed && angleStyle == AngleFixed) || particle->numSpheres() == 1) return 0;
   double uTot = 0;
   for (int i=0; i<particle->numSpheres(); i++) {
     if (bondStyle != Fixed) {
-      for (BondedPartner bp : bondedPartners[i]) {
+      for (BondedPartner bp : bondedPartners[iModel][i]) {
         if (bp.sphere2 < i) continue;
         switch (bondStyle) {
           case Harmonic:
@@ -571,13 +583,13 @@ Potential<T>::energy1(Particle<T> * particle) const {
         double ulj, nbs, uwca;
         switch (nonbondStyle) {
           case HardSphere:
-            if (nonbondedScaling[i][j] == 0) break;
+            if (nonbondedScaling[iModel][i][j] == 0) break;
             uTot += uHardSphere(particle->getSpherePosition(i),
                                 particle->getSpherePosition(j),
                                 nonbondCoeffs[iType][jType]);
             break;
           case LennardJones:
-            nbs = nonbondedScaling[i][j];
+            nbs = nonbondedScaling[iModel][i][j];
             if (nbs > 0) {
               ulj = uLennardJones(particle->getSpherePosition(i),
                                     particle->getSpherePosition(j),
@@ -586,7 +598,7 @@ Potential<T>::energy1(Particle<T> * particle) const {
             }
             break;
           case WCA:
-            nbs = nonbondedScaling[i][j];
+            nbs = nonbondedScaling[iModel][i][j];
             if (nbs > 0) {
               uwca = uWCA(particle->getSpherePosition(i),
                          particle->getSpherePosition(j),
@@ -604,7 +616,7 @@ Potential<T>::energy1(Particle<T> * particle) const {
     }
   }
   if (angleStyle != AngleFixed) {
-    for (AngleTriplet at : angleTriplets) {
+    for (AngleTriplet at : angleTriplets[iModel]) {
       switch (angleStyle) {
         case AngleHarmonic:
           uTot += uAngleHarmonic(particle->getSpherePosition(at.sphere1),
@@ -654,7 +666,7 @@ Potential<T>::energy2(Particle<T> * particle1, Particle <T> * particle2) const {
     else {
 
       int iType = (int)(particle1->getModel()->getSpheres()->at(i).getRadius());
-  
+
       for (int j=0; j<particle2->numSpheres(); j++) {
         // exclude bonded pairs
         int jType = (int)(particle2->getModel()->getSpheres()->at(j).getRadius());
@@ -760,12 +772,20 @@ Potential<T>::uWCA(Vector3<T> ri, Vector3<T> rj, double* c) const {
 
 template <class T>
 const std::vector<std::vector<BondedPartner>> *
-Potential<T>::getBondedPartners() const {
-   return &bondedPartners;
+Potential<T>::getBondedPartners(int iModel) const {
+   return &bondedPartners[iModel];
 }
 
 template <class T>
 const bool
+Potential<T>::getAnyTorsion() const {
+  bool anyTorsion = false;
+  for (bool ht : hasTorsion) anyTorsion = anyTorsion || ht;
+  return anyTorsion;
+}
+
+template <class T>
+const std::vector<bool>
 Potential<T>::getHasTorsion() const {
   return hasTorsion;
 }
@@ -773,7 +793,13 @@ Potential<T>::getHasTorsion() const {
 template <class T>
 const bool
 Potential<T>::getFlexible() const {
-  return bondStyle != Fixed || angleStyle != AngleFixed || (hasTorsion && angleStyle != AngleFixed && angleStyle != AngleNone);
+  return bondStyle != Fixed || angleStyle != AngleFixed || (getAnyTorsion() && angleStyle != AngleFixed && angleStyle != AngleNone);
+}
+
+template <class T>
+const bool
+Potential<T>::getRigidHS() const {
+  return !getFlexible() && nonbondStyle == HardSphere;
 }
 
 }

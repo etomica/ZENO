@@ -38,9 +38,9 @@ class IntegratorMSMC {
     IntegratorMSMC(int threadNum,
                    Timer const * totalTimer,
                    RandomNumberGenerator * randomNumberGenerator,
-                   std::vector<Sphere<double> const *> & boundingSpheres,
+                   std::vector<Sphere<double>> * boundingSpheres,
                    std::vector<int> & numParticles,
-                   std::vector<MixedModelProcessed<T> const *> & models);
+                   std::vector<MixedModelProcessed<T>> * models);
 
   ~IntegratorMSMC();
 
@@ -56,7 +56,6 @@ private:
   int threadNum;
   Timer const * totalTimer;
   RandomNumberGenerator * randomNumberGenerator;
-  std::vector<Sphere<double> const *> & boundingSpheres;
   std::vector<int> & numParticles;
   std::vector<Particle<T> *> particles;
   std::vector<MCMove<T, RandomNumberGenerator> *> mcMoves;
@@ -79,19 +78,18 @@ IntegratorMSMC<T,
 IntegratorMSMC(int threadNum,
                 Timer const * totalTimer,
                 RandomNumberGenerator * randomNumberGenerator,
-                std::vector<Sphere<double> const *> & boundingSpheres,
+                std::vector<Sphere<double>> * boundingSpheres,
                 std::vector<int> & numParticles,
-                std::vector<MixedModelProcessed<T> const *> & models) :
+                std::vector<MixedModelProcessed<T>> * models) :
               threadNum(threadNum),
               totalTimer(totalTimer),
               randomNumberGenerator(randomNumberGenerator),
-              boundingSpheres(boundingSpheres),
               numParticles(numParticles), randomUtilities(randomNumberGenerator) {
     for(unsigned int i = 0; i < numParticles.size(); ++i)
     {
         for (int j =0; j < numParticles[i]; ++j)
         {
-            particles.push_back(new Particle<T> (* models[i], * boundingSpheres[i]));
+            particles.push_back(new Particle<T> (models->at(i), boundingSpheres->at(i)));
         }
     }
     currentValue.push_back(0);

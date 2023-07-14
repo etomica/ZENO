@@ -66,7 +66,6 @@
 #include "BodParser/BodParser.h"
 #include "MapParser/MapParser.h"
 #include "XyzParser/XyzParser.h"
-#include "FfParser/FfParser.h"
 
 #include "Results.h"
 
@@ -101,7 +100,8 @@ parseBodFile(ParametersLocal * parametersLocal,
 	     ParametersWalkOnSpheres * parametersWalkOnSpheres,
 	     ParametersInteriorSampling * parametersInteriorSampling,
 	     ParametersResults * parametersResults,
-	     MixedModel<double> * model);
+	     std::vector<MixedModel<double>> * models,
+	     Potential<double> * potential);
 
 void
 parseMapFile(ParametersLocal const & parametersLocal,
@@ -114,10 +114,6 @@ parseXyzFile(ParametersLocal const & parametersLocal,
 	     std::list<std::string> * comments);
 
 void
-parseFfFile(ParametersLocal * parametersLocal,
-	    Potential<double> * potential);
-
-void
 broadcastSnapshots(std::list<zeno::MixedModel<double> > * snapshots);
   
 int
@@ -128,7 +124,7 @@ runZeno(ParametersLocal const & parametersLocal,
 	ParametersResults * parametersResults,
 	double readTime,
 	double broadcastTime,
-	MixedModel<double> * model,
+	std::vector<MixedModel<double>> * models,
 	Potential<double> & potential,
 	CsvItems * csvItems);
 
@@ -293,7 +289,7 @@ int main(int argc, char **argv) {
 	     &globalCsvItems);
   }
 
-  MixedModel<double> model;
+  std::vector<MixedModel<double>> models;
   Potential<double> potential;
 
   Timer readTimer;
@@ -304,13 +300,14 @@ int main(int argc, char **argv) {
 		 &parametersWalkOnSpheres,
 		 &parametersInteriorSampling,
 		 &parametersResults,
-		 &model);
+		 &models,
+                 &potential);
 
-    if (parametersLocal.getFfInputFileNameWasSet()) {
-      parseFfFile(&parametersLocal,
-		  &potential);
+    std::vector<int> numSpheresPerModel;
+    for (MixedModel<double> & m : models) {
+      numSpheresPerModel.push_back(m.getSpheres()->size());
     }
-    potential.initialize(model.getSpheres()->size());
+    potential.initialize(numSpheresPerModel);
 
     readTimer.stop();
   }
@@ -324,7 +321,10 @@ int main(int argc, char **argv) {
   parametersVirial.mpiBroadcast(0);
   parametersResults.mpiBroadcast(0);
   parametersLocal.mpiBroadcast(0);
-  model.mpiBroadcast(0);
+  //std::vector<MixedModel<double>> models;
+  for (MixedModel<double> & m : models) {
+      m.mpiBroadcast(0);
+  }
 
   broadcastTimer.stop();
 
@@ -338,7 +338,7 @@ int main(int argc, char **argv) {
   }
 
   if (parametersLocal.getXyzInputFileNameWasSet() &&
-      !model.isEmpty()) {
+      (models.size() > 1 || !models[0].isEmpty())) {
 
     std::cerr << "Error: Cannot specify non-trajectory geometry when using "
 	      << "trajectory mode" << std::endl;
@@ -375,7 +375,7 @@ int main(int argc, char **argv) {
 	      &parametersResults,
 	      readTimer.getTime(),
 	      broadcastTimer.getTime(),
-	      &model,
+	      &models,
               potential,
 	      &perRunCsvItemsList.back());
 
@@ -445,6 +445,8 @@ int main(int argc, char **argv) {
 
       perRunCsvItemsList.emplace_back();
       
+      std::vector<zeno::MixedModel<double>> snapshotModel1;
+      snapshotModel1.push_back(snapshot);
       int runZenoStatus =
 	runZeno(parametersLocal,
 		&snapshotParametersWalkOnSpheres,
@@ -453,7 +455,7 @@ int main(int argc, char **argv) {
 		&snapshotParametersResults,
 		readTimer.getTime(),
 		broadcastTimer.getTime(),
-		&snapshot,
+		&snapshotModel1,
                 potential,
 		&perRunCsvItemsList.back());
 
@@ -681,7 +683,8 @@ parseBodFile(ParametersLocal * parametersLocal,
 	     ParametersWalkOnSpheres * parametersWalkOnSpheres,
 	     ParametersInteriorSampling * parametersInteriorSampling,
 	     ParametersResults * parametersResults,
-	     MixedModel<double> * model) {
+	     std::vector<MixedModel<double>> * models,
+             Potential<double> * potential) {
 
   std::string fileName = parametersLocal->getInputFileName();
 
@@ -699,7 +702,8 @@ parseBodFile(ParametersLocal * parametersLocal,
 			       parametersWalkOnSpheres,
 			       parametersInteriorSampling,
 			       parametersResults,
-			       model);
+			       models,
+			       potential);
 
   int parseResult = parser.parse();
 
@@ -777,36 +781,6 @@ parseXyzFile(ParametersLocal const & parametersLocal,
   inputFile.close();
 }
 
-/// Parses the forcefield file given as input and extracts bonds, the type of
-/// the interactoin potentials and potential parameters.
-void
-parseFfFile(ParametersLocal * parametersLocal,
-	    Potential<double> * potential) {
-
-  std::string fileName = parametersLocal->getFfInputFileName();
-
-  std::ifstream inputFile;
-
-  inputFile.open(fileName, std::ifstream::in);
-
-  if (!inputFile.is_open()) {
-    std::cerr << "Error opening ff input file " << fileName << std::endl;
-    exit(EXIT_FAILURE);
-  }
-
-  ff_parser::FfParser parser(inputFile,
-			     potential);
-
-  int parseResult = parser.parse();
-
-  if (parseResult != 0) {
-    std::cerr << "Error parsing bod input file " << fileName << std::endl;
-    exit(EXIT_FAILURE);
-  }
- 
-  inputFile.close();
-}
-
 
 /// If MPI rank is 0, broadcasts the list of snapshots to all other MPI nodes.
 /// If MPI rank is not 0, fills the list of snapshots with the snapshots
@@ -839,14 +813,13 @@ runZeno(ParametersLocal const & parametersLocal,
 	ParametersResults * parametersResults,
 	double readTime,
 	double broadcastTime,
-	MixedModel<double> * model,
+	std::vector<MixedModel<double>> * models,
 	Potential<double> & potential,
 	CsvItems * csvItems) {
   
   // If we read a forcefield file, then skip preprocessing as it
   // re-orders the spheres.
-  bool doPreprocess = !parametersLocal.getFfInputFileNameWasSet();
-  Zeno zeno(model, potential, doPreprocess);
+  Zeno zeno(models, potential);
 
   if (parametersLocal.getPrintBenchmarks() && 
       parametersLocal.getMpiRank() == 0) {
