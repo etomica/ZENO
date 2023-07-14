@@ -496,7 +496,7 @@ Potential<T>::initialize(std::vector<int> & nspm) {
         if (bondedPartners[a].size() >= 2) {
           for (int bb=0; bb<(int)bondedPartners[a].size(); bb++) {
             int b = bondedPartners[i][a][bb].sphere2;
-            if (bondedPartners[b].size() >= 2) {
+            if (bondedPartners[i][b].size() >= 2) {
               hasTorsion[i] = true;
               break;
             }
