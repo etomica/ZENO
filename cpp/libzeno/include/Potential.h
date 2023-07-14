@@ -544,6 +544,8 @@ template <class T>
 double
 Potential<T>::energy1(int iModel, Particle<T> * particle) const {
   if ((bondStyle == Fixed && angleStyle == AngleFixed) || particle->numSpheres() == 1) return 0;
+  // if we have a simple pure system, then our arrays do not store data per-particle
+  if (bondedPartners.size() == 1) iModel = 0;
   double uTot = 0;
   for (int i=0; i<particle->numSpheres(); i++) {
     if (bondStyle != Fixed) {
@@ -778,6 +780,7 @@ Potential<T>::uWCA(Vector3<T> ri, Vector3<T> rj, double* c) const {
 template <class T>
 const std::vector<std::vector<BondedPartner>> *
 Potential<T>::getBondedPartners(int iModel) const {
+   if (bondedPartners.size() == 1) return &bondedPartners[0];
    return &bondedPartners[iModel];
 }
 
