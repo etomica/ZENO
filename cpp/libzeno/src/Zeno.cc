@@ -980,10 +980,13 @@ Zeno::doVirialSamplingThread(ParametersVirial const * parameters,
         needRotate = needRotate || models->at(i).getSpheres()->size() > 1;
       }
     }
-    else {
-      assert(models->size() == 1);
+    else if (models->size() == 1) {
       needRotate = models->at(0).getSpheres()->size() > 1;
       numParticles.push_back(parameters->getOrder());
+    }
+    else {
+      std::cerr << "Number of SPECIES must match virial coefficient order" << std::endl;
+      exit(1);
     }
     double temperature = parameters->getTemperature();
     int numDerivatives = parameters->getNumDerivatives();
