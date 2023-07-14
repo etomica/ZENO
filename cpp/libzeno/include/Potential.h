@@ -115,6 +115,7 @@ class Potential {
   const std::vector<bool> getHasTorsion() const;
   const bool getFlexible() const;
   const bool getRigidHS() const;
+  const std::vector<int> getNumSpheresPerModel() const;
 
  private:
   bool empty;
@@ -165,6 +166,7 @@ Potential<T>::Potential(const Potential &p) : empty(true),
                                            bondStyle(p.getBondStyle()),
                                            angleStyle(p.getAngleStyle()),
                                            nonbondStyle(p.getNonbondStyle()),
+                                           numSpheresPerModel(p.getNumSpheresPerModel()),
                                            bondPairs(p.getBondPairs()),
                                            angleTriplets(p.getAngleTriplets()) {
   for (int i=0; i<(int)p.getBondCoeffs()->size(); i++) {
@@ -482,8 +484,8 @@ Potential<T>::initialize(std::vector<int> & nspm) {
       }
       if ((int)seen.size() != nspm[i]) {
         std::cerr << "Connectivity missing for some spheres.  From first sphere (1), cannot reach";
-        for (int i=0; i<nspm[i]; i++) {
-          if (seen.count(i) == 0) std::cerr << " " << (i+1);
+        for (int j=0; j<nspm[i]; j++) {
+          if (seen.count(j) == 0) std::cerr << " " << (j+1);
         }
         std::cerr << std::endl;
         exit(1);
@@ -803,6 +805,12 @@ template <class T>
 const bool
 Potential<T>::getRigidHS() const {
   return !getFlexible() && nonbondStyle == HardSphere;
+}
+
+template <class T>
+const std::vector<int>
+Potential<T>::getNumSpheresPerModel() const {
+  return numSpheresPerModel;
 }
 
 }
