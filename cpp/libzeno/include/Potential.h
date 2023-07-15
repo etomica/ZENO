@@ -115,6 +115,7 @@ class Potential {
   const std::vector<bool> getHasTorsion() const;
   const bool getFlexible() const;
   const bool getRigidHS() const;
+  const std::vector<int> getNumSpheresPerModel() const;
 
  private:
   bool empty;
@@ -165,6 +166,7 @@ Potential<T>::Potential(const Potential &p) : empty(true),
                                            bondStyle(p.getBondStyle()),
                                            angleStyle(p.getAngleStyle()),
                                            nonbondStyle(p.getNonbondStyle()),
+                                           numSpheresPerModel(p.getNumSpheresPerModel()),
                                            bondPairs(p.getBondPairs()),
                                            angleTriplets(p.getAngleTriplets()) {
   for (int i=0; i<(int)p.getBondCoeffs()->size(); i++) {
@@ -240,7 +242,10 @@ Potential<T>::~Potential() {
   for (int i=0; i<(int)nonbondCoeffs.size(); i++) {
     for (int j=i; j<(int)nonbondCoeffs[i].size(); j++) delete [] nonbondCoeffs[i][j];
   }
-  for (int i=0; i<(int)bondedPartners.size(); i++) delete [] nonbondedScaling[i];
+  for (int i=0; i<(int)bondedPartners.size(); i++) {
+    for (int j=0; j<(int)bondedPartners[i].size(); j++) delete [] nonbondedScaling[i][j];
+    delete [] nonbondedScaling[i];
+  }
   delete[] nonbondedScaling;
 }
 
@@ -433,8 +438,8 @@ Potential<T>::initialize(std::vector<int> & nspm) {
       bondedPartners[i][bp.sphere1].push_back(partner1);
       BondedPartner partner2 = {bp.sphere1, bp.bondType};
       bondedPartners[i][bp.sphere2].push_back(partner2);
-      nonbondedScaling[bp.sphere1][bp.sphere2] = 0;
-      nonbondedScaling[bp.sphere2][bp.sphere1] = 0;
+      nonbondedScaling[i][bp.sphere1][bp.sphere2] = 0;
+      nonbondedScaling[i][bp.sphere2][bp.sphere1] = 0;
     }
 
     for (AngleTriplet at : angleTriplets[i]) {
@@ -446,12 +451,12 @@ Potential<T>::initialize(std::vector<int> & nspm) {
         partner2 = {at.sphere3, -1};
         bondedPartners[i][at.sphere2].push_back(partner2);
       }
-      nonbondedScaling[at.sphere1][at.sphere2] = 0;
-      nonbondedScaling[at.sphere1][at.sphere3] = 0;
-      nonbondedScaling[at.sphere2][at.sphere3] = 0;
-      nonbondedScaling[at.sphere2][at.sphere1] = 0;
-      nonbondedScaling[at.sphere3][at.sphere1] = 0;
-      nonbondedScaling[at.sphere3][at.sphere2] = 0;
+      nonbondedScaling[i][at.sphere1][at.sphere2] = 0;
+      nonbondedScaling[i][at.sphere1][at.sphere3] = 0;
+      nonbondedScaling[i][at.sphere2][at.sphere3] = 0;
+      nonbondedScaling[i][at.sphere2][at.sphere1] = 0;
+      nonbondedScaling[i][at.sphere3][at.sphere1] = 0;
+      nonbondedScaling[i][at.sphere3][at.sphere2] = 0;
     }
 
     if (bondStyle != Fixed || angleStyle != AngleFixed) {
@@ -479,8 +484,8 @@ Potential<T>::initialize(std::vector<int> & nspm) {
       }
       if ((int)seen.size() != nspm[i]) {
         std::cerr << "Connectivity missing for some spheres.  From first sphere (1), cannot reach";
-        for (int i=0; i<nspm[i]; i++) {
-          if (seen.count(i) == 0) std::cerr << " " << (i+1);
+        for (int j=0; j<nspm[i]; j++) {
+          if (seen.count(j) == 0) std::cerr << " " << (j+1);
         }
         std::cerr << std::endl;
         exit(1);
@@ -493,7 +498,7 @@ Potential<T>::initialize(std::vector<int> & nspm) {
         if (bondedPartners[a].size() >= 2) {
           for (int bb=0; bb<(int)bondedPartners[a].size(); bb++) {
             int b = bondedPartners[i][a][bb].sphere2;
-            if (bondedPartners[b].size() >= 2) {
+            if (bondedPartners[i][b].size() >= 2) {
               hasTorsion[i] = true;
               break;
             }
@@ -539,6 +544,8 @@ template <class T>
 double
 Potential<T>::energy1(int iModel, Particle<T> * particle) const {
   if ((bondStyle == Fixed && angleStyle == AngleFixed) || particle->numSpheres() == 1) return 0;
+  // if we have a simple pure system, then our arrays do not store data per-particle
+  if (bondedPartners.size() == 1) iModel = 0;
   double uTot = 0;
   for (int i=0; i<particle->numSpheres(); i++) {
     if (bondStyle != Fixed) {
@@ -773,6 +780,7 @@ Potential<T>::uWCA(Vector3<T> ri, Vector3<T> rj, double* c) const {
 template <class T>
 const std::vector<std::vector<BondedPartner>> *
 Potential<T>::getBondedPartners(int iModel) const {
+   if (bondedPartners.size() == 1) return &bondedPartners[0];
    return &bondedPartners[iModel];
 }
 
@@ -800,6 +808,12 @@ template <class T>
 const bool
 Potential<T>::getRigidHS() const {
   return !getFlexible() && nonbondStyle == HardSphere;
+}
+
+template <class T>
+const std::vector<int>
+Potential<T>::getNumSpheresPerModel() const {
+  return numSpheresPerModel;
 }
 
 }

@@ -1006,7 +1006,8 @@ Zeno::doVirialSamplingThread(ParametersVirial const * parameters,
     MCMoveBondAngle<double , RandomNumberGenerator> mcMoveAngleRef(refIntegrator, &clusterSumRef, potential, temperature);
     MCMoveBondTorsion<double , RandomNumberGenerator> mcMoveTorsionRef(refIntegrator, &clusterSumRef, potential, temperature);
     refIntegrator.addMove(&mcMoveChain, 1.0);
-    bool flexModel = potential.getFlexible();
+    // we only know how to compute flex correction for B3
+    bool flexModel = potential.getFlexible() && parameters->getOrder() == 3;
     if (needRotate) {
       refIntegrator.addMove(&mcMoveRotateRef, 1.0);
       if (potential.getBondStyle() != Fixed) refIntegrator.addMove(&mcMoveStretchRef, 1.0);
