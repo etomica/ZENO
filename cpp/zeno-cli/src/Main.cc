@@ -135,6 +135,7 @@ printOutput(Results const & results,
 	    ParametersVirial const & parametersVirial,
 	    ParametersResults const & parametersResults,
 	    ParametersLocal const & parametersLocal,
+            Potential<double> const & potential,
 	    double initializeTime,
 	    double readTime,
 	    double broadcastTime,
@@ -154,11 +155,16 @@ printParameters(ParametersWalkOnSpheres const & parametersWalkOnSpheres,
 	        ParametersVirial const & parametersVirial,
 	        ParametersResults const & parametersResults,
 		ParametersLocal const & parametersLocal,
+                Potential<double> const & potential,
 		CsvItems * csvItems);
 
 void
 printResults(Results const & results,
 	     CsvItems * csvItems);
+
+void
+printPotentialStyles(Potential<double> const & potential,
+	             CsvItems * csvItems);
 
 template <typename T>
 void
@@ -167,6 +173,12 @@ printExactScalar(std::string const & prettyName,
 		 std::string const & units,
 		 T property,
 		 CsvItems * csvItems);
+
+void
+printString(std::string const & prettyName,
+	    std::string const & csvName,
+	    std::string const & str,
+	    CsvItems * csvItems);
 
 template <typename T>
 void
@@ -909,6 +921,7 @@ runZeno(ParametersLocal const & parametersLocal,
 	      *parametersVirial,
 	      *parametersResults,
 	      parametersLocal,
+              potential,
 	      zeno.getInitializeTime(),
 	      readTime,
 	      broadcastTime,
@@ -938,6 +951,7 @@ printOutput(Results const & results,
 	    ParametersVirial const & parametersVirial,
 	    ParametersResults const & parametersResults,
 	    ParametersLocal const & parametersLocal,
+            Potential<double> const & potential,
 	    double initializeTime,
 	    double readTime,
 	    double broadcastTime,
@@ -962,6 +976,7 @@ printOutput(Results const & results,
 		    parametersVirial,
 		    parametersResults,
 		    parametersLocal,
+                    potential,
 		    csvItems);
 
     std::cout << std::endl
@@ -1077,6 +1092,7 @@ printParameters(ParametersWalkOnSpheres const & parametersWalkOnSpheres,
 	        ParametersVirial const & parametersVirial,
 	        ParametersResults const & parametersResults,
 		ParametersLocal const & parametersLocal,
+                Potential<double> const & potential,
 		CsvItems * csvItems) {
   
   printExactScalar("Input file", "input_file", "",
@@ -1154,6 +1170,9 @@ printParameters(ParametersWalkOnSpheres const & parametersWalkOnSpheres,
   }
 
   if (parametersVirial.getOrderWasSet()) {
+
+    printPotentialStyles(potential, csvItems);
+
     printExactScalar("Virial coefficient order", "virial_order", "",
 		     parametersVirial.getOrder(),
 		     csvItems);
@@ -1343,6 +1362,29 @@ printResults(Results const & results,
   // }
 }
 
+/// Prints potential style names
+///
+void
+printPotentialStyles(Potential<double> const & potential,
+	             CsvItems * csvItems) {
+  if (potential.getEmpty()) return;
+
+  printString("Nonbond style",
+              "nonbond_style",
+              potential.getNonbondStyleName(),
+              csvItems);
+
+  printString("Bond style",
+              "bond_style",
+              potential.getBondStyleName(),
+              csvItems);
+
+  printString("Angle style",
+              "angle_style",
+              potential.getAngleStyleName(),
+              csvItems);
+}
+
 /// Prints a scalar that does not have uncertainty
 ///
 template <typename T>
@@ -1481,6 +1523,23 @@ printMatrix3x3(Result<Matrix3x3<Uncertain<double> > > const & result,
       csvItems->at(2).push_back(to_string_scientific(result.value.get(row, col).getStdDev()));
     }
   }
+}
+
+/// Prints a scalar that does not have uncertainty
+///
+void
+printString(std::string const & prettyName,
+	    std::string const & csvName,
+	    std::string const & str,
+	    CsvItems * csvItems) {
+
+  std::cout << prettyName;
+
+  std::cout << std::fixed << ": " << str << std::endl;
+
+  csvItems->at(0).push_back(csvName);
+  csvItems->at(1).push_back("value");
+  csvItems->at(2).push_back(str);
 }
 
 /// Writes Walk-on-Spheres and Interior Sampling hit points to disk.
