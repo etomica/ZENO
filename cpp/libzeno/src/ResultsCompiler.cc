@@ -300,7 +300,7 @@ ResultsCompiler::compile(ResultsZeno const * resultsZeno,
 
           Uncertain<double> v2 = resultsVirial->getVirialCoefficientReduced(1);
           Result<Uncertain<double> >
-            result2("Flexible correction + 4 B2^2",
+            result2("Flexible correction - 4 B2^2",
                     "virial_coefficient_flex",
                     v2,
                     unitName.str());
