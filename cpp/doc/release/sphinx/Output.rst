@@ -12,7 +12,8 @@ Output
 
 Depending on the quantity, the requirements for calculations are
 different. Some quantities require the exterior calculation, some the
-interior, and some both. Additionally, some quantities are direct
+interior, and some both. Virial-coefficient calculations are in a category
+by themselves. Additionally, some quantities are direct
 outputs, while others are indirect—requiring only the direct outputs
 coupled with algebraic expressions. Finally, some special quantities
 require optional input such as the temperature. Each of these
