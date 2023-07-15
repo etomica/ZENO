@@ -117,6 +117,11 @@ class Potential {
   const bool getRigidHS() const;
   const std::vector<int> getNumSpheresPerModel() const;
 
+  bool getEmpty() const;
+  std::string getNonbondStyleName() const;
+  std::string getBondStyleName() const;
+  std::string getAngleStyleName() const;
+
  private:
   bool empty;
   std::vector<bool> hasTorsion;
@@ -254,6 +259,7 @@ Potential<T>::~Potential() {
 template <class T>
 void
 Potential<T>::setBondStyleName(std::string bondStyleName) {
+  empty = false;
   if (bondStyleName.compare("fixed") == 0) {
     bondStyle = BondStyle::Fixed;
   }
@@ -296,6 +302,7 @@ Potential<T>::setBondCoeff(int bondType, double* coeffs) {
 template <class T>
 void
 Potential<T>::setAngleStyleName(std::string angleStyleName) {
+  empty = false;
   if (angleStyleName.compare("none") == 0) {
     angleStyle = AngleStyle::AngleNone;
   }
@@ -349,6 +356,7 @@ Potential<T>::setNonbondCoeff(int sphereType, double* coeffs) {
 template <class T>
 void
 Potential<T>::setNonbondStyleName(std::string nonbondStyleName) {
+  empty = false;
   if (nonbondStyleName.compare("hs") == 0) {
     nonbondStyle = NonbondStyle::HardSphere;
   }
@@ -814,6 +822,48 @@ template <class T>
 const std::vector<int>
 Potential<T>::getNumSpheresPerModel() const {
   return numSpheresPerModel;
+}
+
+template <class T>
+bool
+Potential<T>::getEmpty() const {
+  return empty;
+}
+
+template <class T>
+std::string
+Potential<T>::getNonbondStyleName() const {
+  switch (nonbondStyle) {
+    case HardSphere:
+      return "HS";
+    case LennardJones:
+      return "LJ";
+    case WCA:
+      return "WCA";
+    default:
+      return "Unknown";
+  }
+}
+
+template <class T>
+std::string
+Potential<T>::getBondStyleName() const {
+  switch (bondStyle) {
+    case Fixed:
+      return "FIXED";
+    case Harmonic:
+      return "HARMONIC";
+    case FENE:
+      return "FENE";
+    default:
+      return "Unknown";
+  }
+}
+
+template <class T>
+std::string
+Potential<T>::getAngleStyleName() const {
+  return nonbondStyle == HardSphere ? "HS" : (nonbondStyle == LennardJones ? "LJ" : (nonbondStyle == WCA ? "WCA" : "Unknown"));
 }
 
 }
