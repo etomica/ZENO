@@ -292,19 +292,21 @@ ResultsCompiler::compile(ResultsZeno const * resultsZeno,
           std::stringstream unitName;
           unitName << Units::getName(parameters->getLengthScaleUnit()) << "^" << (3*(resultsVirial->getOrder()-1));
           Result<Uncertain<double> >
-            result("Virial coefficient",
+            result("Virial coefficient - flexible correction",
                    "virial_coefficient",
                    v,
                    unitName.str());
           results->virialCoefficient.push_back(result);
 
-          Uncertain<double> v2 = resultsVirial->getVirialCoefficientReduced(1);
-          Result<Uncertain<double> >
-            result2("Flexible correction - 4 B2^2",
-                    "virial_coefficient_flex",
-                    v2,
-                    unitName.str());
-          results->virialCoefficient.push_back(result2);
+          if (parameters->getVirialFlexible() && resultsVirial->getOrder() == 3) {
+              Uncertain<double> v2 = resultsVirial->getVirialCoefficientReduced(1);
+              Result<Uncertain<double> >
+                result2("Flexible correction - 4 B2^2",
+                        "virial_coefficient_flex",
+                        v2,
+                        unitName.str());
+              results->virialCoefficient.push_back(result2);
+          }
       }
       else {
           Uncertain<double> v = resultsVirial->getVirialCoefficientReduced(0);
