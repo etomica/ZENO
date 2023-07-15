@@ -881,6 +881,10 @@ Zeno::getVirialResults
  std::vector<RandomNumberGenerator> * threadRNGs,
  ResultsVirial * * resultsVirial) {
 
+  if (!parametersVirial.getReferenceDiameterWasSet()) {
+      std::cerr << "Must set reference diameter to do virial calculations" << std::endl;
+      exit(1);
+  }
   double refDiameter = parametersVirial.getReferenceDiameter();
   int nFactorial = 1;
   for (int i=2; i<=parametersVirial.getOrder(); i++) nFactorial *= i;
