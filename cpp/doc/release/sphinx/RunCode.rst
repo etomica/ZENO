@@ -109,6 +109,13 @@ The selection in principle has no effect on the calculated coefficient, but it c
 
 ``--virial-reference-diameter=<size of reference sphere>``
 
+For potentials that are not just hard repulsion, or that have soft intramolecular bonding potentials, the virial coefficient depends on temperature.  
+The temperature for the calculation is specified on the command line.
+
+``--temperature=<temperature value>``
+
+The specified temperature is in units consistent with the energy parameter(s) specified for the force-field model. Default value is 1.
+
 .. _sec:cmdline:
 
 Description of command-line options

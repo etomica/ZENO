@@ -293,7 +293,8 @@ Temperature
 +-------------------+-----------------------------------+
 | Explanation:      | Specifies the temperature, which  |
 |                   | is used for computing the         |
-|                   | diffusion coefficient.            |
+|                   | diffusion coefficient             | 
+|                   | (not used for virial coefficients)|
 +-------------------+-----------------------------------+
 | Options:          | The string can take the following |
 |                   | values:                           |
@@ -403,6 +404,12 @@ the specification of the intra-particle force fields, as described below. All co
 particle's geometric center unchanged.
 **Object translation and rotation** move an atom assembly as a rigid object; these trials are the primary way 
 that ZENO samples configurations of the particles, and they are always performed as part of the Monte Carlo sampling.   
+
+If the interactions are not hard-sphere, then a temperature :math:`T` is needed to compute the configuration weights and the averages needed for the virial
+coefficients. This temperature is input on the command line. The energies described below are divided directly by this input temperature, so the
+Boltzmann constant :math:`k_{\rm B}` is assumed to be implicit in their definitions (i.e., :math:`T` is treated as :math:`k_{\rm B}T,` or equivalently,
+an energy parameter :math:`\epsilon` is treated as :math:`\epsilon/k_{\rm B}`), and the units of the force-field energy parameters should be consistent
+with :math:`T`.
 
 
 Intra-particle: General
