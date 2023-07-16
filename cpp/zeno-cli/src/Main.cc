@@ -719,6 +719,12 @@ parseBodFile(ParametersLocal * parametersLocal,
 
   int parseResult = parser.parse();
 
+  if (models->size() == 0) {
+    // perhaps BOD simply contained a trajectory
+    MixedModel<double> m;
+    models->push_back(m);
+  }
+
   if (parseResult != 0) {
     std::cerr << "Error parsing bod input file " << fileName << std::endl;
     exit(EXIT_FAILURE);
