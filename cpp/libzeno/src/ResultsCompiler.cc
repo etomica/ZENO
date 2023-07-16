@@ -321,10 +321,10 @@ ResultsCompiler::compile(ResultsZeno const * resultsZeno,
           for (int iValue = 1; iValue < numValues; iValue++) {
               Uncertain<double> v = resultsVirial->getVirialCoefficientReduced(iValue);
               std::stringstream name, csvName;
-              name << "Virial coefficient " << iValue;
+              name << "(1/T)-derivative (" << iValue << ")";
               csvName << "virial_coefficient_" << iValue;
               std::stringstream unitNameD;
-              unitNameD << Units::getName(parameters->getLengthScaleUnit()) << "^" << (3*(resultsVirial->getOrder()-1)) << " (kB " << Units::getName(parameters->getTemperatureUnit()) << ")";
+              unitNameD << "T^" << iValue << " " << Units::getName(parameters->getLengthScaleUnit()) << "^" << (3*(resultsVirial->getOrder()-1));
               Result<Uncertain<double> >
                 resultD(name.str(),
 	                csvName.str(),
