@@ -889,6 +889,10 @@ Zeno::getVirialResults
   int nFactorial = 1;
   for (int i=2; i<=parametersVirial.getOrder(); i++) nFactorial *= i;
   double refIntegral = nFactorial*std::pow(4.0*M_PI*refDiameter*refDiameter*refDiameter/3.0,parametersVirial.getOrder()-1)/2;
+  if (potential.getFlexible() && parametersVirial.getNumDerivatives() > 0) {
+      std::cerr << "Cannot compute derivatives for flexible models." << std::endl;
+      exit(1);
+  }
   int nVirialValues = potential.getFlexible() ?
        (parametersVirial.getOrder() == 2 ? 1 : 2) :
        (parametersVirial.getNumDerivatives()+1);
