@@ -863,7 +863,16 @@ Potential<T>::getBondStyleName() const {
 template <class T>
 std::string
 Potential<T>::getAngleStyleName() const {
-  return nonbondStyle == HardSphere ? "HS" : (nonbondStyle == LennardJones ? "LJ" : (nonbondStyle == WCA ? "WCA" : "Unknown"));
+  switch (angleStyle) {
+    case AngleStyle::AngleNone:
+      return "NONE";
+    case AngleStyle::AngleFixed:
+      return "FIXED";
+    case AngleStyle::AngleHarmonic:
+      return "HARMONIC";
+    default:
+      return "Unknown";
+  }
 }
 
 }
