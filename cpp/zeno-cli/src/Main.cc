@@ -1182,6 +1182,10 @@ printParameters(ParametersWalkOnSpheres const & parametersWalkOnSpheres,
     printExactScalar("Virial coefficient order", "virial_order", "",
 		     parametersVirial.getOrder(),
 		     csvItems);
+
+    printExactScalar("Temperature for virial coefficient", "virial_temperature", "",
+		     parametersVirial.getTemperature(),
+		     csvItems);
   }
 
   if (parametersVirial.getStepsWasSet()) {
