@@ -1195,7 +1195,7 @@ printParameters(ParametersWalkOnSpheres const & parametersWalkOnSpheres,
   }
 
   if (parametersVirial.getNumDerivativesWasSet()) {
-    printExactScalar("Number of derivatvies", "num_derivatives", "",
+    printExactScalar("Number of derivatives", "num_derivatives", "",
 		     parametersVirial.getNumDerivatives(),
 		     csvItems);
   }
